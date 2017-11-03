@@ -5,10 +5,13 @@
  * For more details take a look at the Groovy Quickstart chapter in the Gradle
  * user guide available at https://docs.gradle.org/3.5/userguide/tutorial_groovy_projects.html
  */
+//import org.apache.ivy.plugins.resolver.URLResolver
 
 // Apply the groovy plugin to add support for Groovy
 apply plugin: 'groovy'
 apply plugin: 'application'
+
+defaultTasks 'clean', 'build', 'distTar', 'distZip', 'groovydoc', 'javadoc', 'run','runAcctg','runCell','runCells','runDatePicker','runDateSupport','runGUI','runH2','runH2Row','runH2Support','runPane','runParser','runTrans'
 
 mainClassName = "Cell"
 
@@ -22,12 +25,23 @@ repositories {
 dependencies {
     // Use the latest Groovy version for building this library
     compile 'org.codehaus.groovy:groovy-all:2.4.12'
+	//compile 'org.apache.ivy:ivy:2.4.0'
+	//compile group: 'org.apache.ivy', name: 'ivy', version: '2.4.0'
 
     // Use the awesome Spock testing and specification framework
     testCompile 'org.spockframework:spock-core:1.1-groovy-2.4'
     testCompile 'junit:junit:4.12'
+    runtime 'com.h2database:h2:1.4.196'
 }
 
+
+// runs the main() method; args are ignored but maybe later ?
+task(runAcctg, dependsOn: 'classes', type: JavaExec) {
+		main = 'Acctg'
+		classpath = sourceSets.main.runtimeClasspath
+		//args 'jimbo', 'hi kids'
+		//systemProperty 'simple.message', 'Hi kids '
+}
 
 // runs the Cells main() method; args are ignored but maybe later ?
 task(runCell, dependsOn: 'classes', type: JavaExec) {
@@ -47,13 +61,79 @@ task(runCells, dependsOn: 'classes', type: JavaExec) {
 }
 
 // runs the main() method; args are ignored but maybe later ?
-task(runAcctg, dependsOn: 'classes', type: JavaExec) {
-		main = 'Acctg'
+// Opens small GUI with 2 fields: 1)date & 2)popup button
+task(runDatePicker, dependsOn: 'classes', type: JavaExec) {
+		main = 'DatePickerExample'
 		classpath = sourceSets.main.runtimeClasspath
-		//args 'jimbo', 'hi kids'
-		//systemProperty 'simple.message', 'Hi kids '
+}
+
+// runs the main() method; 
+// to convert dd/mm/yyyy strings into a Date() object & ISO ccyy-mm-dd
+// 20170930... isIsoDate of [2017-09-30] yn=true
+// ... intDay=30 & intMo=9
+// ... can convert string 2017-09-30 into iso date - ok
+// ... converted iso string 2017-09-30 into 'Sat Sep 30 14:05:28 CEST 2017' ok; intYr=2017 intMo=9 intDay=30
+// getIsoDate()=Sat Sep 30 14:05:28 CEST 2017
+task(runDateSupport, dependsOn: 'classes', type: JavaExec) {
+		main = 'com.jim.toolkit.tools.DateSupport'
+		classpath = sourceSets.main.runtimeClasspath
+}
+
+// runs the main() method; args are ignored but maybe later ?
+// Mr Haki's well run Address bind GUI that works, if you add more logic
+task(runGUI, dependsOn: 'classes', type: JavaExec) {
+		main = 'MrHakiGUI'
+		classpath = sourceSets.main.runtimeClasspath
+}
+
+// runs the main() method; args are ignored but maybe later ?
+//  needs jdk 1.7+
+/*
+> Task :runH2
+select * from test
+id=1 value=clob0: 'the LAZY turd jumped over the brown dog.'  dt=2017-10-08  ran=1
+id=2 value=clob1: 'the LAZY turd jumped over the brown dog.'  dt=2017-10-12  ran=1
+id=3 value=clob2: 'the LAZY turd jumped over the brown dog.'  dt=2017-10-17  ran=1
+--- the end ---
+*/
+task(runH2, dependsOn: 'classes', type: JavaExec) {
+		main = 'H2'
+		classpath = sourceSets.main.runtimeClasspath
+}
+
+// runs the main() method; needs jdk 1.7+ 
+task(runH2Row, dependsOn: 'classes', type: JavaExec) {
+		main = 'com.jim.toolkit.tools.H2RowSupport'
+		classpath = sourceSets.main.runtimeClasspath
+}
+
+// runs the main() method; needs jdk 1.7+
+task(runH2Support, dependsOn: 'classes', type: JavaExec) {
+		main = 'com.jim.toolkit.tools.H2Support'
+		classpath = sourceSets.main.runtimeClasspath
+}
+
+// runs the main() method; args are ignored but maybe later ?
+// runs ok - gives dropdown choice of 3 names pick one and OK
+task(runPane, dependsOn: 'classes', type: JavaExec) {
+		main = 'Pane'
+		classpath = sourceSets.main.runtimeClasspath
+}
+
+// runs the main() method; args are ignored but maybe later ?
+// runs sample JSON text string parser for pairs of {} char.s
+task(runParser, dependsOn: 'classes', type: JavaExec) {
+		main = 'Parser'
+		classpath = sourceSets.main.runtimeClasspath
+}
+
+// runs the main() method; args are ignored but maybe later ?
+// GUI for Cell entry works ok until you SAVE when H2 is called but fails as not JDK 1.7+
+task(runTrans, dependsOn: 'classes', type: JavaExec) {
+		main = 'TransactionGUI'
+		classpath = sourceSets.main.runtimeClasspath
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion '4.1'
+    gradleVersion '4.2'
 }

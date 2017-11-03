@@ -17,7 +17,7 @@ swingBuilder.edt {  // edt method makes sure UI is build on Event Dispatch Threa
     lookAndFeel 'nimbus'  // Simple change in look and feel.
     frame(title: 'Address', size: [350, 230],
             show: true, locationRelativeTo: null,
-            defaultCloseOperation: JFrame.DO_NOTHING_ON_CLOSE) {
+            defaultCloseOperation: JFrame.EXIT_ON_CLOSE) {
         borderLayout(vgap: 5)
          
         panel(constraints: BorderLayout.CENTER,
@@ -54,6 +54,9 @@ swingBuilder.edt {  // edt method makes sure UI is build on Event Dispatch Threa
         panel(constraints: BorderLayout.SOUTH) {
             button text: 'Save', actionPerformed: {
                 println address
+            }
+            button text: 'Exit', actionPerformed: {
+                System.exit(0);
             }
         }
          

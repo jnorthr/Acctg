@@ -1,3 +1,5 @@
+println "Parse JSON Text samples for counts of pairs of {} braces used in json"
+
 brackets = 0;
 list=[]; 
 String projectDir ="/Users/jimnorthrop/Dropbox/Projects/Acctg";
@@ -9,7 +11,7 @@ def jsonText = """
         .travis.yml
         src: {
             main{
-                groovy{
+                groovy{`
                     Tools.groovy
                 }
                 resources{}
@@ -23,9 +25,11 @@ def jsonText = """
     }       
 """.toString();
 
+println jsonText;
+
 def see()
 {
-    print "[${brackets}]"
+    print "| ${brackets} { open |"
     //print tfField;
     tfField="";
 } // end of see

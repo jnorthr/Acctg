@@ -7,16 +7,18 @@ class CellTest extends Specification {
     def "Simple Cell constructor returns proper name of action"() {
         setup:
 		    Date dat = Date.parse('yyy-MM-dd','2017-01-01');
-			Cell obj = new Cell([d:dat, type:0, client:0, purpose:'Start',amount:-123.45])
+			Cell obj = new Cell([d:dat, type:'B', number:0, purpose:'Start',amount:-123.45, flag:true])
 		
         when:
         	def result = obj.cvtType()
+        	println "... result=[${result}]"
 
         then:
-        	result == "Balance"
+        	result == "Income "
         	obj.amount == -123.45
         	//obj.d == 'Sun Jan 01 00:00:00 CET 2017'
         	obj.purpose == 'Start'
-        	obj.client == 0
+        	obj.number == 0
+        	obj.flag == true;
     }
 }
