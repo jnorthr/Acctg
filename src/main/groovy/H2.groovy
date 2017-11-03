@@ -17,7 +17,7 @@ String home = System.getProperty("user.home");
 String address = "jdbc:h2:file:${home}/Dropbox/Projects/Acctg/.h2data/acctg;AUTOCOMMIT=ON"; 
 
 def sql = Sql.newInstance(address, "sa", "sa", "org.h2.Driver")
-//sql.execute("drop table IF EXISTS test")
+sql.execute("drop table IF EXISTS test")
 
 sql.execute("CREATE TABLE IF NOT EXISTS test (id int auto_increment, value text, dt date)")  // IF NOT EXISTS test 
 

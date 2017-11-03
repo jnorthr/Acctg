@@ -77,7 +77,7 @@ import static java.util.Calendar.*
 
 
    /** 
-    * Method to build H2 database table if it is not found.
+    * Method is Table-level to build default named H2 database table if it is not found.
     * 
     * @return void
     */     
@@ -97,7 +97,7 @@ import static java.util.Calendar.*
 
 
    /** 
-    * Method to build H2 database table if it is not found.
+    * Method is Table-level to build H2 database table if it is not found.
     * 
     * @param db holds string name of H2 database
     * @return void
@@ -119,7 +119,7 @@ import static java.util.Calendar.*
 
 
    /** 
-    * Method to remove H2 database table if it is found.
+    * Method is Table-level to remove H2 database table if it is found.
     * 
     * @param dbtable holds string name of H2 database
     * @return void
@@ -140,8 +140,29 @@ import static java.util.Calendar.*
     }  // end of method
 
 
+
    /** 
-    * Method to add row to in-use H2 database table.
+    * Method is Table-level to remove default H2 database table 'core' if it is found.
+    * 
+    * @return void
+    */     
+    public drop()
+    {
+        try
+        {
+            String stmt = """DROP TABLE IF EXISTS ${dbtable}"""
+            sql.execute(stmt)
+            say "... dropped H2 database table ${dbtable} ok"
+        }
+        catch (Exception x)
+        {
+            say "${dbtable} table not found to drop or caused problem:"+x.message
+        }
+    }  // end of method
+
+
+   /** 
+    * Method to add row to in-use H2 database table. Unique Row ID implied & supplied by H2 engine.
     * 
     * @param txt holds string used to populate the reason for this row
     * @return 
@@ -162,7 +183,8 @@ import static java.util.Calendar.*
 
 
    /** 
-    * Method to remove a row of in-use H2 database table.
+    * Method to remove a row of in-use H2 database table. Row ID implied & supplied by H2 engine
+    * used as unique key to identify row to be deleted.
     * 
     * @param which holds int value of the ID of the row to remove
     * @return 
@@ -184,28 +206,9 @@ import static java.util.Calendar.*
     }  // end of method
 
 
-   /** 
-    * Method to remove H2 database table if it is found.
-    * 
-    * @return void
-    */     
-    public drop()
-    {
-    	try
-    	{
-    		String stmt = """DROP TABLE IF EXISTS ${dbtable}"""
-			sql.execute(stmt)
-			say "... drop H2 database table ${dbtable} ok"
-		}
-		catch (Exception x)
-		{
-			say "${dbtable} table not found to drop or caused problem:"+x.message
-		}
-    }  // end of method
-
 
    /** 
-    * Method to see H2 database table rows.
+    * Method to see H2 database default table rows.
     * 
     * @return void
     */     
@@ -295,6 +298,8 @@ address=${address}
 
 		println ""
 		obj.select();
+
+        obj.drop();
 		
         println "--- the end of H2Support ---"
     } // end of main

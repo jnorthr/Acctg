@@ -43,6 +43,8 @@ import java.text.SimpleDateFormat
 
    /** 
     * Default Constructor 
+    *
+    * creates an SQL handle to default 'core' table
     * 
     * @return H2Support object
     */     
