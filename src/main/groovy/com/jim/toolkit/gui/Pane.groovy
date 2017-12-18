@@ -1,3 +1,5 @@
+package com.jim.toolkit.gui;
+
 import javax.swing.*;
 import groovy.transform.*;
 import javax.swing.JOptionPane;
@@ -14,6 +16,10 @@ import javax.swing.JOptionPane.*
  @Canonical 
  public class Pane
  {
+   /** 
+    * Variable name of current class.
+    */  
+    String classname = "Pane";
 
    /** 
     * Method to ask user about a choice of possibilities.

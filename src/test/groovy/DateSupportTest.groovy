@@ -4,6 +4,7 @@
 import spock.lang.Specification
 import com.jim.toolkit.tools.DateSupport;
 import static java.util.Calendar.*
+import com.jim.toolkit.tools.DateSupport;
 
 class DateSupportTest extends Specification {
     def "Simple DateSupport constructor returns proper name of action"() {

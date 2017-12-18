@@ -1,7 +1,9 @@
-//package io.jnorthr;
+package com.jim.toolkit;
+
 // http://mrhaki.blogspot.fr/2009/08/groovy-goodness-bound-and-constrained.html explains constraints
 import groovy.transform.*;
 import groovy.beans.*
+import com.jim.toolkit.database.H2TableSupport;
 
 /*
  * Copyright 2017 the original author or authors.
@@ -24,11 +26,20 @@ import groovy.beans.*
  *
  * This is a sample Cell with all bits needed to do a gradle project
  *
- */ 
- @Canonical 
- @Bindable 
- public class Cell
- {
+ * here's the rub: if you add ANY constructor to this class, it kills the
+ * constructors from the  @Bindable annotation - so default to @Bindable 
+ * constructors or write all yourself from scratch ;-{}
+ *        public Cell(groovy.lang.Binding b, boolean flag)
+ *       {
+ *           println "... running Binding Cell constructor - "
+ *           this.setBinding(b)
+ *       }  // end of method
+ */
+
+@Canonical 
+@Bindable 
+public class Cell
+{
    /** 
     * a unique integer value of a cell within all Cells[] array.
     */  
@@ -36,10 +47,10 @@ import groovy.beans.*
 
 
     /**  java date-type variable used to keep date of this transaction */
-    Date d = new Date();
+    Date date = new Date();
 
 
-    /** an integer value to indicate which action to perform on this transaction 
+    /** a Char value to indicate which action to perform on this transaction 
         A = replace balance with this value
         B = increase balance by this amount
         C = reduce balance by this amount
@@ -60,15 +71,15 @@ import groovy.beans.*
 
 
    /** 
-    * Text variable describing the reason for this transaction.
-    */  
-    String purpose='unknown';
-
-
-   /** 
     * Boolean variable describing a yes/no or true/false condition for this transaction.
     */  
     Boolean flag = false;
+
+
+   /** 
+    * Text variable describing the reason for this transaction.
+    */  
+    String reason='unknown';
 
 
    /** 
@@ -95,18 +106,39 @@ import groovy.beans.*
    /** 
     * Method to set internal variables from a groovy Binding var.
     * 
+    * @param b is a Binding holding key/values for our Cell object
     * @return none
     */     
     public setBinding(Binding b)
     {
-        this.id = 0;
-        
-        this.d       = (b.hasVariable("d")) ? b.getVariable("d") : new Date();
+        this.id    = (b.hasVariable("id")) ? b.getVariable("id") : 0;        
+        this.date    = (b.hasVariable("date")) ? b.getVariable("date") : new Date();
         this.type    = (b.hasVariable("type")) ? b.getVariable("type") : ' ';
         this.amount  = (b.hasVariable("amount")) ? b.getVariable("amount") : 0;
         this.number  = (b.hasVariable("number")) ? b.getVariable("number") : 0;
-        this.purpose = (b.hasVariable("purpose")) ? b.getVariable("purpose") : " ";
         this.flag    = (b.hasVariable("flag")) ? b.getVariable("flag") : false;               
+        this.reason  = (b.hasVariable("reason")) ? b.getVariable("reason") : " ";
+    } // end of method
+    
+    
+   /** 
+    * Method to set internal Id variable for this cell if currently zero or it's Id is already
+    * less than the maximum id number already in the core table;
+    * 
+    * @return int assigned row Id or if zero find the highest max Id in the 'core' H2 table.
+    */     
+    public int setId()
+    {
+        H2TableSupport ts = new H2TableSupport()
+        int max = ts.max();
+
+        if (this.id==0 || !(this.id > max) )
+        {
+            max+=1;
+            this.id = max;
+        } // end of if
+
+        return max; 
     } // end of method
     
     
@@ -117,8 +149,9 @@ import groovy.beans.*
     */     
     public String toOutput()
     {
-        return id + '; "' + d.format("yyyy-MM-dd") + '"; "' + type + '"; ' + amount + '; ' + number + '; "' + purpose + '"; "' + flag + '";';
+        return id + '; "' + date.format("yyyy-MM-dd") + '"; "' + type + '"; ' + amount + '; ' + number + '; "' + flag + '"; "' + reason + '";';
     }    
+
 
    /** 
     * Method to display internal variables.
@@ -128,18 +161,19 @@ import groovy.beans.*
     @Override
     public String toString()
     {
-        return id + ' ' + d.format("yyyy-MM-dd") + ' ' + type + ' ' + amount + ' ' + number + ' ' + purpose + ' ' + flag;
+        return id + ' ' + date.format("yyyy-MM-dd") + ' ' + type + ' ' + amount + ' ' + number + ' ' + flag + ' ' + reason;
     }  // end of string
+
 
    /** 
     * Method to display internal variablesas a Map.
     * 
     * @return Map formatted content of internal variables
     */     
-    public Map toMap() {
-      Map builder = [id:id,d:d.format("yyyy-MM-dd").toString(),type:type.toString(), amount:amount, number:number,
-      purpose:purpose.toString(), flag:flag];
-      return builder;
+    public Map toMap() 
+    {
+        Map builder = [id:id, date:date.format("yyyy-MM-dd").toString(), type:type.toString(), amount:amount, number:number, flag:flag, reason:reason.toString()];
+        return builder;
    } // end of method
 
 
@@ -155,17 +189,6 @@ import groovy.beans.*
     }  // end of method
 
 
-    /* -
-    * here's the rub: if you add ANY constructor to this class, it kills the
-    * constructors from the  @Bindable annotation - so default to @Bindable 
-    * constructors or write all yourself from scratch ;-{}
-        public Cell(groovy.lang.Binding b, boolean flag)
-        {
-            println "... running Binding Cell constructor - "
-            this.setBinding(b)
-        }  // end of method
-    */
-
    // ======================================
    /** 
     * Method to run class tests.
@@ -178,60 +201,20 @@ import groovy.beans.*
         println "--- starting Cell ---"
         Date dat = Date.parse('yyy-MM-dd','2017-01-01');
 
-        Cell obj = new Cell([d:dat, type:'A', number:123, purpose:'Start', amount:-123.45, id:2, flag:true])
+        Cell obj = new Cell([date:dat, type:'A', number:123, amount:-123.45, id:0, flag:true, reason:'Start'])
 
         println "Cell.toString() = [${obj.toString()}]"
         println "Cell.toOutput() = [${obj.toOutput()}]"
         println "Cell.toMap()    = ${obj.toMap()}"
         
-        println "\n... try Map constructor"
-        dat += 4;
-        Map m = [d:dat, type:'C', number:13, purpose:'Bingo', amount:-75.05, id:27, flag:true];
-        obj = new Cell(m);
-        println "Cell(map).toString() = [${obj.toString()}]"
-         
         println "\n--------------------------------" 
         def cellmap = obj.toMap();
         cellmap.each{k,v-> println "... cellmap k=[${k}] v=[${v}]"}
         println "--------------------------------\n"
         
-        println "\n... try Binding"
-        dat+=24;
-        Binding binding = new Binding();
-        binding.setVariable("d", dat);
-        binding.setVariable("type", "C");
-        binding.setVariable("amount", -1.23);
-        binding.setVariable("number", 64);
-        binding.setVariable("purpose", "reason for deed");
-        binding.setVariable("flag", true);
-
-        println "... try using groovy Binding object with values"
-        Cell obj2 = new Cell();
-        obj2.setBinding(binding)
-        println "Cell2.setBinding(binding) = [${obj2.toString()}]\n"
-        
         println "... try TupleConstructor: http://mrhaki.blogspot.fr/2011/05/groovy-goodness-canonical-annotation-to.html"
         boolean yn = true;
         char ch= 'C'
-        // invisible constructor allows passing a sequence of values with same var.type as each var. declared in this class
-        // but seems like char and boolean must be explicit not just 'C' & false
-        Cell obj3 = new Cell(17,dat,ch,12.34,77499,"Hi kids",yn);
-        println "Cell3 = ${obj3.toString()}"
-
-        Cell obj4 = new Cell(7,dat,ch,12.34); // try constructor without some trailing var.s
-        println "Cell4 = ${obj4.toString()}"
-
-        println "\nTry to build a Cell from a Binding - what kind? Bean or groovy.lang ?"
-        try
-        {
-            Cell obj5 = new Cell(binding, true); // try constructor with Binding parm
-            println "Cell5 = ${obj5.toString()}"
-        } 
-        catch(Exception x) 
-        { 
-            println "... Exception@228="+x.message; 
-        }
-
         println "--- the end of Cell ---"
     } // end of main
 

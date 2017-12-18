@@ -1,8 +1,15 @@
+package com.jim.toolkit.gui;
+
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 
 class DatePicker {
+   /** 
+    * Variable name of current class.
+    */  
+    String classname = "DatePicker";
+
     int month = java.util.Calendar.getInstance().get(java.util.Calendar.MONTH);
     int year = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR);
     JLabel l = new JLabel("", JLabel.CENTER);
@@ -99,6 +106,7 @@ class DatePickerExample {
         p.add(text);
         p.add(b);
         final JFrame f = new JFrame();
+        f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE)
         f.getContentPane().add(p);
         f.pack();
         f.setVisible(true);

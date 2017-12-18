@@ -1,0 +1,157 @@
+here are pieces of code that were in acctg.groovy but became unneeded
+Nice samples logic here to add funny new Cell values
+		//println "... Cells cells=new Cells();"
+		//println cells.toString();
+		//println "------------------------\n"
+
+    /**  establish new Binding object */
+	Binding bind = new Binding();
+        
+    /**  establish a support object to work with dates & times */
+	DateSupport obj = new DateSupport();
+
+
+		bind.setVariable("c", null);
+
+
+   /** 
+    * Method to add some sample transactions.
+    * 
+    * @return void
+    */     
+    public void addSamples()
+    {
+	    /**  test a string date-like value and if possible to convert to a date, then do it */
+		if (obj.isIsoDate('2017-01-01'))
+		{
+    		dt = obj.getIsoDate();
+		} // end of if
+
+
+	    /**  try setup of a Cell object to start the balance */
+		Cell c = new Cell([id:0, date:dt, type:'A', number:0, reason:'Start',amount:-123.45])
+		c.setId();
+
+		println "... @88 write cell balance:"
+		try
+		{
+			cell.add(c);
+		} 
+		catch(Exception x) 
+		{ 
+			println "... Exception@89="+x.message; 
+		} // end of catch
+
+
+	    /**  turn 'c' object into a printable string & print it */
+		def tx2 = c.toOutput();
+		println "... tx2 ="+tx2;
+
+	    /**  establish array of pieces from a 'c' string */
+		def tx2s = tx2.split(';')
+		println "... tx2s.size()="+tx2s.size();
+		println ""
+
+	    /**  test a string date-like value and if possible to convert to a date, then do it */
+		if (obj.isIsoDate('2017-5-24'))
+		{
+    		dt = obj.getIsoDate();
+		}
+
+		println ""
+
+	    /**  try to create an expense Cell object to reduce the balance */
+		println "\n... @117 add cell:423.45 expense"
+		c = new Cell([id:0, date:dt, type:'C',number:0, reason:'fuel',amount:423.45])
+		c.setId();
+		println "... c="+c.toString();
+
+	    //  show a string of existing Cells 
+		println ""
+
+		println "... @124 add expense cell to cells";   //+cells.toString();
+		try
+		{
+			cells.add(c);
+		} 
+		catch(Exception x) 
+		{ 
+			println "... Exception@125="+x.message; 
+		}
+
+		println ""
+
+
+	    //  test a string date-like value and if possible to convert to a date, then do it 
+		if (obj.isIsoDate('2017-04-25'))
+		{
+    		dt = obj.getIsoDate();
+		} // end of if
+		
+		println ""
+
+
+	    //  make a income Cell with some values 
+		c = new Cell([id:0, date:dt, type:'B',number:0,reason:'pension',amount:121.55])
+		c.setId();
+		try
+		{
+			println "... Acctg.groovy cell@144="+c; 
+			cells.add(c);
+		} 
+		catch(Exception x) 
+		{ 
+			println "... Exception@149="+x.message; 
+		}
+
+		println ""
+
+		5.times{
+		    //  ok, just add seven days to latest date, then add that Cell  
+			dt +=7;
+			c = new Cell([id:0, date:dt, type:'B',number:0,reason:'pension',amount:121.55])
+			c.setId();
+			cells.add(c);
+		} // endof times
+
+    } // end of method
+
+
+
+
+
+
+        //obj.addSamples();
+        //obj.cells.each{oce-> println "--- oce="+oce.toString()}
+
+		//def sortedByDate = obj.cells.sort();  //.toSorted { a, b -> a.d <=> b.d }
+		//BigDecimal balance = 0;
+		//def idCounter = 0;
+        //sortedByDate.each{sbd-> println "--- sbd="+sbd.toString()}
+
+/*
+		def file3 = new File('Acctg.txt')
+
+		String absolutePath = file3.getAbsolutePath();
+		println "... Acctg.groovy file3 location:"+absolutePath;
+
+		// Or a writer object:
+		file3.withWriter('UTF-8') { writer ->
+			sortedByDate.each{e->
+	        	switch(e.type)
+    	    	{
+        	    	case 'C': balance -= e.amount;
+            	    	      break;
+            		case 'A': balance = e.amount;
+                		      break;
+            		case 'B': balance += e.amount;
+                		      break;
+        		} // end of switch
+
+        		e.id = ++idCounter;
+
+		        println e.toString()+" so balance now = "+balance;
+    	    	writer.write(e.toOutput()+'\n')
+          	} // end of each
+  		} // end of withWriter
+*/

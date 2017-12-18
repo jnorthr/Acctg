@@ -1,4 +1,4 @@
-package com.jim.toolkit.tools;
+package com.jim.toolkit.database;
 
 import groovy.transform.*;
 import groovy.sql.Sql
@@ -85,7 +85,7 @@ import static java.util.Calendar.*
     {
     	try
     	{
-    		String stmt = """CREATE TABLE IF NOT EXISTS ${dbtable} (id int auto_increment, dt date, type char, amount DECIMAL(20, 2), number int, purpose text, flag boolean )"""
+    		String stmt = """CREATE TABLE IF NOT EXISTS ${dbtable} (id int auto_increment, dt date, type char, amount DECIMAL(20, 2), number int, reason varchar, flag boolean )"""
 			sql.execute(stmt)
 			say "... create H2 database table ${dbtable} ok"
 		}
@@ -106,7 +106,7 @@ import static java.util.Calendar.*
     {
     	try
     	{
-    		String stmt = """CREATE TABLE IF NOT EXISTS ${db} (id int auto_increment, dt date, type char, amount DECIMAL(20, 2), number int, purpose text, flag boolean )"""
+    		String stmt = """CREATE TABLE IF NOT EXISTS ${db} (id int auto_increment, dt date, type char, amount DECIMAL(20, 2), number int, reason varchar, flag boolean )"""
     		sql.execute(stmt)
 			dbtable = db 
 			say "... create H2 database table ${db} ok"
@@ -162,17 +162,26 @@ import static java.util.Calendar.*
 
 
    /** 
-    * Method to add row to in-use H2 database table. Unique Row ID implied & supplied by H2 engine.
+    *   Method to add row to in-use H2 database table. Unique Row ID implied & supplied by H2 engine.
+    *
+    *	This method uses the 'increment' action code of 'B' by default
+    *
+    *   ... a Char value to indicate which action to perform on this transaction 
+	*   A = replace balance with this value
+    *   B = increase balance by this amount
+    *   C = reduce balance by this amount
     * 
     * @param txt holds string used to populate the reason for this row
+    * @param rowdate holds Date() object to populate the action date for this row
+    * @param amt holds BigDecimal value to populate the money for this row
     * @return 
     */     
     public add(String txt, Date rowdate, def amt)
     {
     	try
     	{
-    		String stmt = """INSERT INTO ${dbtable} values(:id, :dt, :type, :amount, :number, :purpose, :flag)"""
-			sql.execute(stmt, [dt:rowdate, type:'B', amount:amt, number:123, purpose: txt, flag:false])
+    		String stmt = """INSERT INTO ${dbtable} values(:id, :dt, :type, :amount, :number, :reason, :flag)"""
+			sql.execute(stmt, [dt:rowdate, type:'B', amount:amt, number:123, reason: txt, flag:false])
 			say "... added row to H2 database table ${dbtable} ok"
 		}
 		catch (Exception x)
@@ -186,7 +195,7 @@ import static java.util.Calendar.*
     * Method to remove a row of in-use H2 database table. Row ID implied & supplied by H2 engine
     * used as unique key to identify row to be deleted.
     * 
-    * @param which holds int value of the ID of the row to remove
+    * @param which holds int value of the ID of the row to be removed
     * @return 
     */     
     public remove(int which)
@@ -195,9 +204,9 @@ import static java.util.Calendar.*
     	{
     		String stmt = """DELETE FROM ${dbtable} WHERE ID = ${which} """
     		say stmt;
-			sql.execute(stmt)
+			def ans = sql.execute(stmt)
 			sql.execute("COMMIT");
-			say "... removed row with ID of ${which} from H2 database table ${dbtable} ok"
+			say "... removed row with ID of ${which} from H2 database table ${dbtable} :"+ans.toString()
 		}
 		catch (Exception x)
 		{
@@ -218,13 +227,15 @@ import static java.util.Calendar.*
     	{
     		String stmt = """SELECT * FROM ${dbtable}"""
     		say stmt;
+            int count = 0;
 
 			sql.eachRow(stmt)
 			{row->
+                count+=1;
 				println "row:"+row.toString()
 			};
 			
-			say "... select rows from H2 database table ${dbtable} ok"
+			say "... selected ${count} rows from H2 database table ${dbtable} ok"
 		}
 		catch (Exception x)
 		{
@@ -278,28 +289,38 @@ address=${address}
         //obj.drop();
                 
         println "H2Support = [${obj.toString()}]"
+/*
+        // build default table 'core' if it does not exist
         obj.create();
 
+        // establish a Date object
 		println ""
 		def date = new Date()
 		def sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss")
 		println "... sdf="+sdf.format(date)
 		println ""
 
+        // add a row with funny non-UTF-8 chars
 		obj.add(" There is something ±§!@£%^&*()_+-= funny here.   ",date, -123.45);
+
+        // bump prior date by 7 days then add that row again too
         date+=7;
         obj.add("magic is here",date, 750.000);
 		println ""
 
+        // Method to see rows of default in-use H2 database table named 'core'.
 		obj.select();
 		println ""
 
+        // Method to remove a row from default in-use H2 database table named 'core'. 
 		obj.remove(1234);
 
 		println ""
-		obj.select();
-
-        obj.drop();
+		//obj.select();
+*/
+        // Method to remove a default in-use H2 database table named 'core'. 
+        obj.drop("core");
+        //obj.create("core");
 		
         println "--- the end of H2Support ---"
     } // end of main

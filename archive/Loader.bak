@@ -1,0 +1,33 @@
+/*        
+        Cells s = obj.load();
+		int count = obj.save(s);
+		println "... saved ${count} rows"
+        println "... how many semis in [${obj.semicolonsample2}] ? "+obj.semis(obj.semicolonsample2);
+        println "... how many semis in [${obj.semicolonsample3}] ? "+obj.semis(obj.semicolonsample3);
+        println ""
+        println "... how many tokens in [${obj.spacesample}] ? "+obj.blanks(obj.spacesample);
+        println "... how many tokens in [${obj.spacesample2}] ? "+obj.blanks(obj.spacesample2);
+        println "... obj.convert said "+obj.convert();
+        println "... obj.toString said "+obj.toString();
+        println "... how many tokens in [${obj.spacesample3}] ? "+obj.blanks(obj.spacesample3);
+        println "... how many tokens in [${obj.spacesample4}] ? "+obj.blanks(obj.spacesample4);
+        println "... how many tokens in [${obj.spacesample5}] ? "+obj.blanks(obj.spacesample5);
+        println ""
+
+        if (obj.semis(obj.spacesample6) < 3) { println "... Tokenize by blanks:"+ obj.blanks(obj.spacesample6) }
+        obj.tokens.each{e->  println "... |${e}|"; }
+
+
+        println "\nsemi sample 6 |${obj.semisample6}| should be picked:"
+
+        if (obj.semis(obj.semisample6) < 3) { println "... tokenize by blanks:"+ obj.blanks(obj.semisample6) }
+        println "... obj.tokens.size()="+obj.tokens.size();
+        obj.tokens.each{e->  println "... |${e}|"; }
+
+        println "... obj.convert said "+obj.convert();
+        println "... obj.toString said "+obj.toString();
+
+		//Cells sells = obj.load();
+		//obj.clear();
+*/
+		
