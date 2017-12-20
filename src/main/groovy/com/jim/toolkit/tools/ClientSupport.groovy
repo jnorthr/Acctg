@@ -90,6 +90,18 @@ import com.jim.toolkit.database.H2TableSupport;
 
 
    /** 
+    * Default Constructor 
+    * 
+    * @return ClientSupport object
+    */     
+    public ClientSupport()
+    {
+        println "running ClientSupport constructor written by Jim Northrop"
+        boolean b = getH2(0)
+    } // end of constructor
+
+
+   /** 
     * Method to find name for a client number.
     * 
     * @param cn Value is integer client number. 
@@ -131,6 +143,30 @@ import com.jim.toolkit.database.H2TableSupport;
         {
 	        s = (titles[cn]) ? titles[cn] : ""; 
 	    }
+        return s;
+    }  // end of string
+
+
+   /** 
+    * Method to find flag for a client number.
+    * 
+    * @param cn Value is integer client number. 
+    * @return flag of client for this client number or false if none found
+    */     
+    public boolean getFlag(def cn)
+    {
+        boolean s = false;
+        // if client number not in income map, ck H2 clients table; 
+        if (!income[cn])
+        {
+            boolean b = getH2(cn)
+            if (b) { s = this.flag; }
+        }
+        else
+        {
+            s = income[cn]; 
+        }
+
         return s;
     }  // end of string
 
@@ -186,11 +222,48 @@ import com.jim.toolkit.database.H2TableSupport;
     */     
     public boolean insert(List cn)
     {
-		def insertSql = 'INSERT INTO clients (id, flag, name, reason) VALUES (?, ?, ?, ?)'
-		//def params = [10, true, 'Credit Agricole', '@Transferwise Deposit']
-		def keys = h2.sql.executeInsert insertSql, cn;
-		println "... keys:"+keys;
-        return (keys!=null) ? true: false; 
+        def i = cn[0] as Integer
+        if (inMap(i))
+        { 
+            println "... cannot insert new client ${i} as already there "
+            return true
+        }
+        else
+        {
+    	    def insertSql = 'INSERT INTO clients (id, flag, name, reason) VALUES (?, ?, ?, ?)'
+	   	    //def params = [10, true, 'Credit Agricole', '@Transferwise Deposit']
+		    def keys = h2.sql.executeInsert insertSql, cn;
+            println "... keys:"+keys;
+            return (keys!=null) ? true: false; 
+        } // end of else
+    }  // end of method
+
+
+   /** 
+    * Method to update a client with this new client's data;
+    *
+    * @param cn List of four values to insert client of a number,then boolean plus two text values. 
+    *       like: [10, true, 'Credit Agricole', '@Transferwise Deposit']
+    * @return true or false - true when this row has been updated correctly.
+    */     
+    public boolean update(List cn)
+    {
+        def i = cn[0] as Integer
+        if (inMap(i))
+        { 
+            println "... cannot insert new client ${i} as already there "
+            String stmt = "UPDATE clients SET name='"+cn[2]+"' where id="+i;
+            def keys = h2.sql.executeUpdate stmt;
+            return (keys!=null) ? true: false; 
+        }
+        else
+        {
+            def insertSql = 'INSERT INTO clients (id, flag, name, reason) VALUES (?, ?, ?, ?)'
+            //def params = [10, true, 'Credit Agricole', '@Transferwise Deposit']
+            def keys = h2.sql.executeInsert insertSql, cn;
+            println "... keys:"+keys;
+            return (keys!=null) ? true: false; 
+        } // end of else
     }  // end of method
 
 
@@ -325,8 +398,15 @@ reason=${reason}
 		}
 		else
 		{ 
-			println "... did not find client in H2"
+			println "... did not find client 10 in H2"
 		}
+
+        obj.delete(10);
+        obj.insert([10,true,"MBNA Bank","Mastercard"]);
+        println "\n... now list all rows in 'clients' table -"
+
+        H2TableSupport h2 = new H2TableSupport('clients');
+        h2.select(){e-> println "... ClientSupport row:"+e.toString(); }
 
         println "--- the end of ClientSupport ---"
     } // end of main

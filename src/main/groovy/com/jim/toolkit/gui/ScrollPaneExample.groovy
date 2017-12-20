@@ -15,12 +15,12 @@ public class ScrollPaneExample
     JTable table = new JTable(data,col);
     JTableHeader header = null;
 
+    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+    int height = screenSize.height * ( 3 / 4 );
+    int width = screenSize.width * ( 3 / 4 ); 
+
     public ScrollPaneExample()
-    {
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        int height = screenSize.height * ( 3 / 4 );
-        int width = screenSize.width * ( 3 / 4 ); 
-       
+    {       
         frame = new JFrame("Creating a Scrollable JTable!");
         table.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);  //JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);  //AUTO_RESIZE_OFF);
 

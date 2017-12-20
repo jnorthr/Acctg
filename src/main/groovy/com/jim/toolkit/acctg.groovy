@@ -1,6 +1,6 @@
 package com.jim.toolkit;
 
-import com.jim.toolkit.tools.DateSupport;
+//import com.jim.toolkit.tools.DateSupport;
 import com.jim.toolkit.tools.ClientSupport;
 
 import groovy.transform.*;
@@ -56,12 +56,9 @@ import com.jim.toolkit.database.H2TableSupport;
     * defaults to initialize vars     */
     public Acctg()
     {
-        println "\nAcctg constructor()"
-
+        //println "\nAcctg constructor()"
 		cells = h2.load();
     } // end of constructor
-
-
 
    /** 
     * Method to display balance report.
@@ -133,10 +130,11 @@ import com.jim.toolkit.database.H2TableSupport;
     {
         def s = """classname=Acctg
 """;
-        cells.each{s+=it.toString();s+='\n';}
+        cells.each{ s+=it.toString();
+                    s+='\n';
+        } // end of each
         return s;
     }  // end of string
-
 
     
    // ======================================

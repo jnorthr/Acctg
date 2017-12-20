@@ -95,7 +95,7 @@ class H2TableSupportTest extends Specification {
             // Alternative syntax: def ex = thrown(InvalidDeviceException)
             //ex.message == 'Please use oven for this recipe.'
             msg == "... dropped H2 database table Mary ok"
-            selectmsg.startsWith("Exception Message :Table \"MARY\" not found; SQL statement:") == true
+            selectmsg.startsWith("... Exception Message :Table \"MARY\" not found; SQL statement:") == true
     } // end of test
 
 

@@ -43,7 +43,7 @@ import com.jim.toolkit.database.H2TableSupport;
     * default is not to load prior Cells if any  */
     public Cells()
     {
-        println "\nCells constructor()"
+        //println "\nCells constructor()"
         //def ct = load();
         //println "... loaded $ct rows"
     } // end of constructor
@@ -73,7 +73,7 @@ import com.jim.toolkit.database.H2TableSupport;
         int ct = 0;
         cells.each{ea-> ct++; if ( ea.flag == tf ) { activeCells + ea; } }
         Cell[] ce = activeCells.toSorted { a, b -> a.date <=> b.date }
-        println "... sortFlag(${tf}) input=${ct} output="+activeCells.size();
+        //println "... sortFlag(${tf}) input=${ct} output="+activeCells.size();
         return ce;
     } // end of sort
 
@@ -86,7 +86,7 @@ import com.jim.toolkit.database.H2TableSupport;
     */     
     public Cell add(Map m)
     {
-        println "... Cells.add(Map m) @92"
+        //println "... Cells.add(Map m) @92"
         Cell nc = new Cell(m)
 
         cells += nc;
@@ -102,9 +102,9 @@ import com.jim.toolkit.database.H2TableSupport;
     */     
     public Cell add(Cell ce)
     {
-        println "... Cells.add(Cell ce) @111"
+        //println "... Cells.add(Cell ce) @111"
         cells += ce;
-        println "... cells.size()=${cells.size()};"
+        //println "... cells.size()=${cells.size()};"
         return ce;
     } // end of add
 
@@ -118,7 +118,7 @@ import com.jim.toolkit.database.H2TableSupport;
     */     
     public Cell add(groovy.lang.Binding b)
     {
-        println "... Cells.add(Binding b) @140"
+        //println "... Cells.add(Binding b) @140"
         Cell nc = new Cell()
         nc.setBinding(b);
         cells += nc;

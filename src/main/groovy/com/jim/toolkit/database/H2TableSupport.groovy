@@ -138,7 +138,7 @@ import static java.util.Calendar.*
     * @param db holds string name of H2 database table to build
     * @return message tells the fate of this request for table creation
     */     
-    public String create(db)
+    public String create(String db)
     {
         dbtable = db;
         return create();
@@ -171,7 +171,7 @@ import static java.util.Calendar.*
     *           new db value alters future non-parameter method to use this one
     * @return message tells the fate of this request for table deletion
     */     
-    public String drop(db)
+    public String drop(String db)
     {
         dbtable = db;
         return drop();
@@ -195,12 +195,12 @@ import static java.util.Calendar.*
         }
         catch (SQLException e) {
             message = "Exception Message " + e.getLocalizedMessage();
-            say message;
+            return message;
         }       
         catch (Exception x)
         {
             message = "${dbtable} table not found to drop or caused problem:"+x.message
-            say message;
+            return message;
         } // end of catch
 
         //say message;
@@ -214,7 +214,7 @@ import static java.util.Calendar.*
     *
     * new db value alters future non-parameter method to use this one
     * 
-    * @param db holds string name of H2 database
+    * @param db holds string name of H2 database table
     * @return message tells the fate of this request for table selection
     */     
     public select(String db)
@@ -225,34 +225,79 @@ import static java.util.Calendar.*
 
 
    /** 
-    * Method to see H2 database default table rows.
+    * Method to see number of rows in H2 database default table rows.
+    * 
+    * @param db holds string name of H2 database table
+    * @return int tells how many rows found in this table
+    */     
+    public int count(String db)
+    {
+        dbtable = db;
+        return count();
+    }  // end of method
+
+
+   /** 
+    * Method to see number of rows in H2 database default table rows.
+    * 
+    * @return int tells how many rows found in this table
+    */     
+    public int count()
+    {
+        String message ="";
+        int count = 0;
+
+        try
+        {
+            String stmt = """SELECT COUNT(*) as num FROM ${dbtable}"""
+            count = sql.firstRow(stmt).num
+            message = "... selected ${count} rows from H2 database table ${dbtable} ok"
+            say message;
+        }
+        catch (SQLException e) {
+            message = "Exception Message :" + e.getLocalizedMessage();
+            say message;
+            count = -1;
+        }       
+        catch (Exception x)
+        {
+            message = "${dbtable} table not found to select rows from - or problem:"+x.message
+            say message;
+            count = -1;
+        } // end of catch
+
+        return count;
+    }  // end of method
+
+
+   /** 
+    * Method to see how many H2 database default table rows.
     * 
     * @return message tells the fate of this request for table selection
     */     
     public select()
     {
         String message ="";
+        int count = 0;
 
     	try
     	{
     		String stmt = """SELECT * FROM ${dbtable}"""
-            int count = 0;
-
 			sql.eachRow(stmt){row->
                 	count+=1;
-					println "row:"+row.toString()
-			};
-			
+            };
+
+			println "... counted ${count} rows of ${dbtable} "			
 			message = "... selected ${count} rows from H2 database table ${dbtable} ok"
 		}
         catch (SQLException e) {
-            message = "Exception Message :" + e.getLocalizedMessage();
-            say message;
+            message = "... Exception Message :" + e.getLocalizedMessage();
+            return message;
         }       
 		catch (Exception x)
 		{
-			message = "${dbtable} table not found to select rows from - or problem:"+x.message
-            say message;
+			message = "... ${dbtable} table not found to select rows from - or problem:"+x.message
+            return message;
 		} // end of catch
 
         //say message;
@@ -272,7 +317,7 @@ import static java.util.Calendar.*
 
         try
         {
-            //String stmt = """SELECT * FROM ${h2.dbtable} ORDER BY DATE"""
+            //String stmt = """SELECT * FROM ${dbtable} ORDER BY DATE"""
             message = stmt;
             int count = 0;
 
@@ -282,7 +327,7 @@ import static java.util.Calendar.*
                 logic(row);
             };
             
-            message = "... selected ${count} rows from H2 database table ${h2.dbtable} ok"
+            message = "... selected ${count} rows from H2 database table ${dbtable} ok"
         }
         catch (SQLException e) {
             message = "Exception Message :" + e.getLocalizedMessage();
@@ -290,7 +335,7 @@ import static java.util.Calendar.*
         }       
         catch (Exception x)
         {
-            message = "${h2.dbtable} table not found to select rows from - problem:"+x.message
+            message = "${dbtable} table not found to select rows from - problem:"+x.message
             say message;
         } // end of catch
 
@@ -311,7 +356,7 @@ import static java.util.Calendar.*
 
         try
         {
-            String stmt = """SELECT * FROM ${h2.dbtable}"""
+            String stmt = """SELECT * FROM ${dbtable}"""
             message =  stmt;
             int count = 0;
 
@@ -320,7 +365,7 @@ import static java.util.Calendar.*
                 logic(row)
             };
             
-            message =  "... selected ${count} rows from H2 database table ${h2.dbtable} ok;"
+            message =  "... selected ${count} rows from H2 database table ${dbtable} ok;"
         }
         catch (SQLException e) {
             message = "Exception Message :" + e.getLocalizedMessage();
@@ -328,7 +373,7 @@ import static java.util.Calendar.*
         }       
         catch (Exception x)
         {
-            message = "${h2.dbtable} table not found to select rows from - or problem:"+x.message
+            message = "${dbtable} table not found to select rows from - or problem:"+x.message
             say message;
         } // end of catch
 
@@ -391,7 +436,7 @@ import static java.util.Calendar.*
     * 
     * @return integer is maximum id number found in any row in this 'name' table
     */     
-    public max()
+    public int max()
     {
     	int max = 0;
         String message ="";
@@ -399,19 +444,30 @@ import static java.util.Calendar.*
         try
         {
         	String stmt = "select id from "+ dbtable + " order by id desc "
-            // say "... max:[${stmt}]"      
+            
             def res = sql.firstRow(stmt)
-            max = res.id;
-            message = "... max Id :[${max}]"      
+            if (res==null)
+            {
+                max = -1;
+                message = "... ${dbtable} table does not exist";
+                say message;
+            }
+            else
+            {
+                max = res.id;
+                message = "... max Id :[${max}]"                      
+            }
         }
         catch (SQLException e) {
             message = "\nException Message :" + e.getLocalizedMessage();
             say message;
+            max = -1;
         }       
         catch (Exception x)
         {
             message = "\n${dbtable} table failed to show: caused by problem:"+x.message
             say message;
+            max = -1;
         } // end of catch
 
         //say message;
@@ -494,9 +550,15 @@ h2=${h2}
     	} // end of if
         
 	    println "... H2TableSupport = [${obj.toString()}]"
+        println "... count('core') how many rows :"+obj.count('core');
+        println "... max() Id:"+obj.max();
 
-        println "... maximum Id:"+obj.max();
-        obj.select();   //load();
+        println obj.select();   //load();
+
+        obj = new H2TableSupport('clients');
+        println "... count() how many rows :"+obj.count();
+        println "... max() Id:"+obj.max();
+
         println "--- the end of H2TableSupport ---"
     } // end of main
 
