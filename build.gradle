@@ -11,16 +11,14 @@
 apply plugin: 'groovy'
 apply plugin: 'application'
 
-<<<<<<< HEAD
 defaultTasks 'clean', 'build', 'distTar', 'distZip', 'groovydoc', 'javadoc', 'run','runEmployee'
 
 mainClassName = "com.jim.toolkit.Employee"
-=======
+
 //defaultTasks 'runRadioButtons', 'runTestNumberFmts','runDatePicker','runGUI','runPane','runTrans' // 'runT2', fails!!!
 defaultTasks 'clean', 'build', 'distTar', 'distZip', 'groovydoc', 'javadoc', 'run','runAcctg','runCell','runCells', 'runDateSupport','runH2','runH2Row','runH2TableSupport','runParser', 'runRadioButtons', 'runTestNumberFmts','runDatePicker','runGUI','runPane','runTrans'  // 'runT2', fails
 
 mainClassName = "com.jim.toolkit.gui.TransactionGUI"
->>>>>>> 53d68934bcac8fe7213942444095ec4099da7683
 
 // In this section you declare where to find the dependencies of your project
 repositories {
@@ -38,10 +36,7 @@ dependencies {
     // Use the awesome Spock testing and specification framework
     testCompile 'org.spockframework:spock-core:1.1-groovy-2.4'
     testCompile 'junit:junit:4.12'
-<<<<<<< HEAD
-=======
     runtime 'com.h2database:h2:1.4.191'
->>>>>>> 53d68934bcac8fe7213942444095ec4099da7683
 }
 
 test {
@@ -65,7 +60,6 @@ test {
         //        org.gradle.api.tasks.testing.logging.TestLogEvent.STANDARD_ERROR,
     }
 }
-<<<<<<< HEAD
 
 // runs the main() method; args are ignored but maybe later ?
 task(runExample, dependsOn: 'classes', type: JavaExec) {
@@ -86,11 +80,6 @@ task(runTable, dependsOn: 'classes', type: JavaExec) {
 		classpath = sourceSets.main.runtimeClasspath
 } // end of task
 
-
-
-task wrapper(type: Wrapper) {
-    gradleVersion '4.7'
-=======
 
 // runs the main() method; args are ignored but maybe later ?
 task(runAcctg, dependsOn: 'classes', type: JavaExec) {
@@ -254,6 +243,5 @@ task(runClient, dependsOn: 'classes', type: JavaExec) {
 
 
 task wrapper(type: Wrapper) {
-    gradleVersion '4.4'
->>>>>>> 53d68934bcac8fe7213942444095ec4099da7683
+    gradleVersion '4.7'
 }
