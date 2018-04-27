@@ -1,0 +1,402 @@
+package com.jim.toolkit.gui;
+
+import groovy.swing.SwingBuilder 
+import groovy.beans.Bindable 
+import static javax.swing.JFrame.EXIT_ON_CLOSE 
+import java.awt.*
+import javax.swing.JFrame;
+import javax.swing.JTextField;
+import java.util.Date;
+import java.text.SimpleDateFormat
+import java.awt.event.KeyEvent
+import com.jim.toolkit.database.H2TableSupport;
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import javax.swing.AbstractButton;
+import javax.swing.ButtonGroup;
+
+import groovy.transform.*;
+
+import com.jim.toolkit.database.H2RowSupport;
+import com.jim.toolkit.tools.DateSupport;
+import com.jim.toolkit.tools.DateArithmetic;
+   
+/*
+ * Copyright 2017 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+@Bindable
+class Transaction { 
+    String date, type, number, reason, amount, dow
+    Boolean flag
+    
+    String toString() { "Transaction[date=$date,type=$type,amount=$amount,number=$number,flag=$flag,reason=$reason,dow=$dow]" }
+
+    void say() 
+    { 
+	    H2RowSupport obj = new H2RowSupport();    
+    	DateSupport ds = new DateSupport();
+        DateArithmetic da = new DateArithmetic();
+//          println "... dayOfWeekName="+da.getDayOfWeekName(otherDate)
+
+        def d = new Date()
+        if (ds.isDate(date))
+        {
+            d = ds.getDate();
+        }
+
+        int value = number as Integer
+        def nbd = new BigDecimal(amount)
+        Map ma = [id:0, date:d, type:type, amount:nbd, number:value,flag:flag,reason:reason]
+        obj.add(ma);
+    } // end of say()
+} // end of class
+   
+
+/** 
+ * TransactionGUI class description
+ *
+ * This is a tool to add entries to the Sql 'core' table with all bits needed 
+ *
+ */ 
+// @Canonical 
+public class TransactionGUI
+{
+   /** 
+    * Variable name of current class.
+    */  
+    String classname = "TransactionGUI";
+
+    DateArithmetic da = new DateArithmetic();
+
+   /** 
+    * Variable datex of current today's date.
+    */  
+    Date datex = new Date();
+    
+   /** 
+    * Setup format of expected date variables.
+    */  
+    def sdf = new SimpleDateFormat("dd/MM/yyyy")
+
+   /** 
+    * establish day-of-week name field using DateArithmetic method that needs a Date object.
+    */  
+    String dow = da.getDayOfWeekName(datex);
+
+   /** 
+    * establish a default day-of-week name field using DateArithmetic method that needs a Date object.
+    */  
+    def Transaction = new Transaction(date: sdf.format(datex), type: 'C', amount:1.05, number: 0, flag:false, reason:'Ice Cream', dow:dow)
+   
+    def swingBuilder = new SwingBuilder()
+
+
+   /** 
+    * Method to do the GUI.
+    * edt method makes sure UI is built on Event Dispatch Thread.
+    * 
+    * @return void
+    */     
+    public void load()
+    {
+		swingBuilder.edt 
+		{  
+            //dow = da.getDayOfWeekName(datex);
+    		lookAndFeel 'nimbus' //'nimbus'  // Simple change in look and feel.    
+		    frame(title: 'Transaction', size: [500, 340], show: true, locationRelativeTo: null, defaultCloseOperation: JFrame.EXIT_ON_CLOSE) 
+    		{
+		        borderLayout(vgap: 5)
+                panel(constraints: BorderLayout.CENTER, border: compoundBorder([emptyBorder(10), titledBorder('Enter your details:')])) 
+        		{
+            		tableLayout 
+            		{
+                		tr {
+                    		td {
+                                hbox{
+                           		 label 'Date of Action:'  // text property is default, so it is implicit.
+                                } // end of hbox
+                    		}
+	                    	td {
+    	                		hbox{
+	    	                    	textField id: 'dateField', columns: 8, text: Transaction.date
+	    	                    	label ' '
+                    	            label id: 'dowField', text: Transaction.dow
+	    	                    	label ' '
+                            		button(id:"plus", text:"+ 7 days");
+            						button(id:"minus", text:"- 7 days");
+	                    	    } // end of hbox
+                    	   } // end of td
+                		} // end of tr
+
+                		tr {
+                    		td {
+        							label 'Repeat:'
+                    		}
+	                    	td {
+       								myGroup = buttonGroup(id:"pm");
+        							hbox{
+                            			radioButton(id:"none", text:"None", buttonGroup:pm, selected:true);
+        							label ' '
+                            			radioButton(id:"plus7", text:"+7days", buttonGroup:pm);
+        							label ' '
+            							radioButton(id:"minus7", text:"-7days", buttonGroup:pm);
+        							label ' '
+                            			radioButton(id:"plus1", text:"+1Month", buttonGroup:pm);
+        							label ' '
+                            			radioButton(id:"minus1", text:"-1Month", buttonGroup:pm);
+        							}
+                    	   } // end of td
+                		} // end of tr
+
+                		tr {
+                    		td {
+        							label ' '
+                    		}
+                		} // end of tr
+
+                		tr {
+                    		td {
+                        			label 'Type :'
+                    		}
+                    		td {
+       								myGroup = buttonGroup(id:"bg");
+        							hbox{
+                            			radioButton(id:"three", text:"Expense", buttonGroup:myGroup, selected:true);
+            							radioButton(id:"two", text:"Income", buttonGroup:myGroup);
+                            			radioButton(id:"one", text:"Balance", buttonGroup:myGroup);
+        							}
+                    		} // end of td
+                		} // end of tr
+
+                		tr {
+                    		td {
+        							label ' '
+                    		}
+                		} // end of tr
+
+
+/*
+                tr {
+                    td {
+                        label 'Type :'
+                    }
+                    td {
+                        textField id: 'typeField', columns: 2,  horizontalAlignment:JTextField.RIGHT, text: Transaction.type
+                    }
+                }
+*/                
+                tr {
+                    td {
+                        label 'Client Number :'
+                    }
+                    td {
+                        textField id: 'clientField',  horizontalAlignment:JTextField.LEFT, columns: 8, Transaction.number
+                    }
+                } // end of tr
+                tr {
+                    td {
+                        label 'Purpose :'
+                    }
+                    td {
+                        textField id: 'purposeField', columns: 16, Transaction.reason
+                    }
+                } // end of tr
+                tr {
+                    td {
+                        label 'Amount :'
+                    }
+                    td {
+                        textField id: 'amountField', horizontalAlignment:JTextField.RIGHT,  columns: 12, Transaction.amount
+                    }
+                } // end of tr
+
+                tr {
+                    td {
+                        label 'Ccy :'
+                    }
+                    td {
+                        //checkBox(id:'aCheckBox4', text:"Stuffed Crust");
+                        checkBox id: 'flagField', text:'£' 
+                    }
+                } // end of tr
+            } // end of tableLayout
+        } // end of panel
+
+         
+        panel(constraints: BorderLayout.SOUTH) 
+        {
+            button text: 'Save', actionPerformed: {
+                println Transaction
+                Transaction.say();
+            }
+            button text: 'Exit', actionPerformed: {
+                System.exit(0);
+            }
+        } // end of panel
+        
+
+        	flagField.addActionListener(new ActionListener()
+            {
+		    	public void actionPerformed(ActionEvent actionEvent) 
+      			{
+        			println "... actionListener starting"  // for :"+id;
+
+			        AbstractButton abstractButton = (AbstractButton) actionEvent.getSource();
+        			println "... isSelected :"+actionEvent.getSource().isSelected();
+
+			        String key = actionEvent.getActionCommand().toString();
+        			boolean selected = abstractButton.getModel().isSelected();
+        			Transaction.flag = selected;
+        			if (selected) { swingBuilder.flagField.text = "Y" } else { swingBuilder.flagField.text = "N" }
+        			println "\n... actionListener ended\n";        
+      			} // end of action
+            } // end of add
+        
+	        );
+         
+	        // Binding of textfield's to Transaction object.
+        	bean Transaction,
+            	date: bind { dateField.text },
+            	//type: bind { typeField.text },
+            	amount: bind{amountField.text}, 
+            	number: bind { clientField.text },
+            	flag: bind { flagField.isSelected() },
+            	reason: bind {purposeField.text}
+            	//println "... bean Transaction... ${flagField} ?"
+    		} // end of frame
+
+		    plus.addActionListener(new ActionListener(){
+        		public void actionPerformed(ActionEvent e) 
+        		{
+            		// Do something here...
+            		println "gui.plus hit"
+            		
+					DateSupport ds = new DateSupport();
+        			if (ds.isDate(swingBuilder.dateField.text))
+        			{
+            			datex = ds.getDate();
+        			}
+
+		            datex += 7;  
+	                Transaction.date = sdf.format(datex); 
+	                println "... + [${Transaction.date}]";
+	                swingBuilder.dateField.text = Transaction.date;
+	                
+	                // update day-of-week
+	                String dow = da.getDayOfWeekName(datex);
+	                Transaction.dow = dow;
+	                swingBuilder.dowField.text = dow; 
+        		}
+    		});
+    
+		    minus.addActionListener(new ActionListener(){
+        		public void actionPerformed(ActionEvent e) 
+        		{
+            		// Do something here...
+            		println "gui.minus hit"
+            		
+					DateSupport ds = new DateSupport();
+        			if (ds.isDate(swingBuilder.dateField.text))
+        			{
+            			datex = ds.getDate();
+        			}
+
+		            datex -= 7;  
+	                Transaction.date = sdf.format(datex); 
+	                println "... + [${Transaction.date}]";
+	                swingBuilder.dateField.text = Transaction.date;
+
+	                // update day-of-week
+	                String dow = da.getDayOfWeekName(datex);
+	                Transaction.dow = dow;
+	                swingBuilder.dowField.text = dow; 
+        		}
+    		});
+    
+
+		    one.addActionListener(new ActionListener(){
+        		public void actionPerformed(ActionEvent e) 
+        		{
+            		// Do something here...
+            		println "gui.one hit"
+            		Transaction.type = 'A';
+        		}
+    		});
+    
+		    two.addActionListener(new ActionListener(){
+        		public void actionPerformed(ActionEvent e) 
+        		{
+            		// Do something here...
+            		println "gui.two hit"
+            		Transaction.type = 'B';
+        		}
+    		});
+    
+		    three.addActionListener(new ActionListener()
+		    {
+        		public void actionPerformed(ActionEvent e) 
+        		{
+            		// Do something here...
+            		println "gui.three hit"
+            		Transaction.type = 'C';
+        		}
+    		});
+    
+		    //boolean ok = (Transaction.flag.trim().toLowerCase().startsWith('t') ) ? true : false;
+    		//flagField.setSelected(ok);
+
+		} // end of swingBuilder
+
+    }  // end of method
+
+
+   // ======================================
+   /** 
+    * Method to run class tests.
+    * 
+    * @param args Value is string array - possibly empty - of command-line values. 
+    * @return void
+    */     
+    public static void main(String[] args)
+    {
+        println "--- starting TransactionGUI ---"
+        TransactionGUI obj = new TransactionGUI();
+        obj.load();
+        println "--- the end of TransactionGUI ---"
+    } // end of main
+
+} // end of class
+
+    // need this for flag checkbox select2ion
+    /*
+    ActionListener actionListener = new ActionListener() 
+    {
+      public void actionPerformed(ActionEvent actionEvent) 
+      {
+        println "... actionListener starting"  // for :"+id;
+
+        AbstractButton abstractButton = (AbstractButton) actionEvent.getSource();
+        println "... isSelected :"+actionEvent.getSource().isSelected();
+
+        String key = actionEvent.getActionCommand().toString();
+        boolean selected = abstractButton.getModel().isSelected();
+        Transaction.flag = selected;
+        println "\n... actionListener ended\n";        
+      } // end of action
+    }; // end of ActionListener
+	*/
+

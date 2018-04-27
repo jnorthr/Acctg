@@ -1,0 +1,20 @@
+
+    // need this for flag checkbox select2ion
+    /*
+    ActionListener actionListener = new ActionListener() 
+    {
+      public void actionPerformed(ActionEvent actionEvent) 
+      {
+        println "... actionListener starting"  // for :"+id;
+
+        AbstractButton abstractButton = (AbstractButton) actionEvent.getSource();
+        println "... isSelected :"+actionEvent.getSource().isSelected();
+
+        String key = actionEvent.getActionCommand().toString();
+        boolean selected = abstractButton.getModel().isSelected();
+        Transaction.flag = selected;
+        println "\n... actionListener ended\n";        
+      } // end of action
+    }; // end of ActionListener
+	*/
+
