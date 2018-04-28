@@ -1,0 +1,10 @@
+3; "2015-01-21"; "A"; -1.23; 1; 64;  "true"; "reason for deed"| My name is Fred;
+1; "2016-12-22"; "C"; 5.45; 2; 0; "false"; "PC Mag."|'My name is Fred'; 
+2; "2017-01-19"; "C"; 25.78; 3; 10; "false"; "Burgers R Us"| "My name is Fred"; 
+5; "2017-02-02"; "B"; 121.44; 1; 2;  "true"; "Pension"|; 
+6; "2017-02-02"; "C"; 0.45; 2; 76; "false"; "Mars Bar"| "Fred"; 
+7; "2017-02-09"; "B"; 121.44; 3; 2;  "true"; "Pension"|"Jim"; 
+8; "2017-02-16"; "B"; 121.44; 1; 2; "true"; "Pension"|"Jim was here"; 
+39; "2017-02-23"; "B"; 121.44; 2; 2; "true"; "Pension  "|  "Jim was here"; 
+10; "2017-03-02"; "B"; 121.44; 3; 2; "true"; "Pension " |"Jim was here"; 
+11; "2017-09-21"; "C"; 31.50; 1; 74; "true"; "Honda Jazz Insurance"  |" My name is Fred"; 

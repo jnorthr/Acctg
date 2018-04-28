@@ -4,16 +4,18 @@
 import spock.lang.Specification
 import com.jim.toolkit.Cells;
 import com.jim.toolkit.Cell;
+import groovy.lang.Binding // not import groovy.lang.Binding
 
 class CellsTest extends Specification {
 
     def "Simple Cells constructor returns proper string for a date"() {
         setup:
-		Cells obj = null
+	   	    Cells obj = new Cells();
 		
         when:
-		obj = new Cells()
-		Date dat =  obj.cvt('2017-09-21');
+    		Date dat =  obj.cvt('2017-09-21');
+            println "... Cells.toString() = |${obj.toString()}| \n-----------------------\n"
+            println "... Cells.cvt('2017-09-21' = |${dat.toString()}| "
 
         then:
         	dat.toString().startsWith("Thu Sep 21") == true
@@ -26,9 +28,9 @@ class CellsTest extends Specification {
 			Cells obj = new Cells();
 			Cell c = null;			
 	        dat += 4;
-    	    Map m = [id:27, date:dat, type:'C', amount:-75.05, number:13, flag:true, reason:'Bingo'];
+    	    Map m = [id:27, date:dat, type:'C', amount:-75.05, client:13, flag:true, reason:'Bingo winner', name:'Mad Max'];
         	c = new Cell(m);
-	        println "Cell(map).toString() = [${c.toString()}]"
+	        println "... Cell(map).toString() = [${c.toString()}]"
 
         when:
 			obj.add(c);
@@ -39,4 +41,94 @@ class CellsTest extends Specification {
     } // end of test
     
     
+    def "Add an entry to Cells list using .add(Cell c) method"() {
+        setup:
+            Cells obj = new Cells();
+            Date dat = Date.parse('yyy-MM-dd','2018-02-28');
+            Cell ce = new Cell([id:1, date:dat, type:'C', amount:31.50, ccy:978, client:74, flag:true, reason:'Honda Jazz Insurance', name:'Mad Max'])
+
+        when:
+            obj.add(ce);
+            println "... Cells after add() = |${obj.toString()}|"
+
+        then:
+            obj.cells.size() == 1
+    } // end of test
+    
+    
+    def "Add an entry to Cells list using .add(Map m) method"() {
+        setup:
+            Cells obj = new Cells();
+            Date dat = Date.parse('yyy-MM-dd','2018-02-28');
+            Map ma = [id:9, date:dat, type:'C', amount:25.78, ccy:826, client:1, flag:false, reason:'Burgers R Us', name:'Mad Max']
+
+        when:
+            obj.add(ma);
+            println "... Cells after add() = |${obj.toString()}|"
+
+        then:
+            obj.cells.size() == 1
+            obj.cells[0].id==9
+            obj.cells[0].date==dat
+            obj.cells[0].type == 'C'
+            obj.cells[0].amount==25.78
+            obj.cells[0].ccy==826
+            obj.cells[0].client==1
+            obj.cells[0].flag==false
+            obj.cells[0].reason=="Burgers R Us"
+            obj.cells[0].name=="Mad Max"
+    } // end of test
+    
+    
+    def "Add an entry to Cells list using a Binding in the Cell setBinding method"() {
+        setup:
+            Cells obj = new Cells();
+            Date dat = Date.parse('yyy-MM-dd','2018-02-28');
+            Cell ce = new Cell([id:1, date:dat, type:'C', amount:31.50, ccy:978, client:74, flag:true, reason:'Honda Jazz Insurance', name:'Mad Max'])
+            Binding binding = new Binding();
+
+        when:
+            binding.setVariable("id", 22);
+            binding.setVariable("date", dat);
+            binding.setVariable("type", "A");
+            binding.setVariable("amount", -1.23);
+            binding.setVariable("ccy", 840);
+            binding.setVariable("name", "Jim N." );
+            ce.setBinding(binding);
+    
+            obj.add(ce);
+            println "... Cell = |${ce.toString()}|"
+            println "... Cells after add() = |${obj.toString()}|"
+
+        then:
+            obj.cells.size() == 1
+            obj.cells[0].id==22
+            obj.cells[0].date==dat
+            obj.cells[0].type == 'A'
+            obj.cells[0].amount==-1.23
+            obj.cells[0].ccy==840
+            obj.cells[0].client==0
+            obj.cells[0].flag==false
+            obj.cells[0].name=="Jim N."
+            obj.cells[0].reason==" "
+    } // end of test
+    
+    def "Test Cells sortCCY method to choose only one currency list sortCCY(826) method"() {
+        setup:
+            Cells obj = new Cells();
+            Date dat = Date.parse('yyy-MM-dd','2018-02-28');
+            Cell ce = new Cell([id:1, date:dat, type:'C', amount:31.50, ccy:826, client:74, flag:true, reason:'Honda Jazz Insurance', name:'Jim N.'])
+
+        when:
+            obj.add(ce);
+            ce = new Cell([id:44, date:dat, type:'B', amount:1.50, ccy:978, client:74, flag:true, reason:'Honda Jazz Insurance', name:'Jim N.'])
+            obj.add(ce);
+            obj.sortCCY(826).each{cea-> println "... entry from sortCCY(826)=|${cea}|"}        
+
+        then:
+            obj.ccycells.size() == 1
+            println "... Cells[0] after sortCCY(826) = |${obj.ccycells[0].toString()}|"
+            obj.ccycells[0].toString() == /1 2018-02-28 C 31.50 826 74 true "Honda Jazz Insurance" "Jim N."/
+    } // end of test
+
 } // end of class

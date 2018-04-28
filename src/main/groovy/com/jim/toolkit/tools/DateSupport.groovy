@@ -5,6 +5,8 @@ import groovy.sql.Sql
 import java.util.Date;
 import java.text.SimpleDateFormat
 import static java.util.Calendar.*
+import groovy.util.logging.Slf4j;
+import org.slf4j.*
  
 /*
  * Copyright 2017 the original author or authors.
@@ -28,6 +30,7 @@ import static java.util.Calendar.*
  * This is code with all bits needed to validate and format date strings as dd/mm/ccyy or yyyy-mm-dd mostly ISO date formatting
  *
  */ 
+ @Slf4j
  @Canonical 
  public class DateSupport
  {
@@ -40,6 +43,8 @@ import static java.util.Calendar.*
     
    /** 
     * Variable datex of current today's date. Holds validated isDate text value - when valid
+    *
+    * in India, it's: |Sun Feb 04 13:07:29 IST 2018|
     */  
     String datex = new Date();
 
@@ -49,6 +54,11 @@ import static java.util.Calendar.*
     */  
     String isodate = new Date();
 
+
+   /** 
+    * Variable holding  dd/mm/ccyy date expression of just translated date. Holds validated isIsoDate text value - when valid
+    */  
+    String ddmmccyyDate = "";
 
    /** 
     * Variable name of current class.
@@ -63,7 +73,7 @@ import static java.util.Calendar.*
 
 
    /** 
-    * Variable holds maximum number of days in each month. Added dummy zero as slot zero, so
+    * Variable holds maximum number of days in each month. Added dummy zero as first slot zero, so
     * month values can point directly to it's max limit
     */  
     int[] dim = [0, 31,29,31,30,31,30,31,31,30,31,30,31];
@@ -78,6 +88,9 @@ import static java.util.Calendar.*
     /** a range of valid characters that can appear in a token */
     def valid = '0'..'9';
 
+    /** set true to give log output */
+    boolean logFlag = false;
+    
 
    /** 
     * Default Constructor 
@@ -86,8 +99,220 @@ import static java.util.Calendar.*
     */     
     public DateSupport()
     {
-        //say "running DateSupport constructor written by Jim Northrop"
+        say "running DateSupport constructor written by Jim Northrop"
+        DecodeDate dd = new DecodeDate();
+        datex = dd.decode(datex);
+        ddmmccyyDate = datex;
     } // end of constructor
+
+
+   /** 
+    * Non-Default Constructor 
+    * 
+    * @param  ok holds boolean used to set logging debug flag
+    * @return DateSupport object
+    */     
+    public DateSupport(boolean ok)
+    {
+    	logFlag = ok;
+        say "running DateSupport constructor written by Jim Northrop"
+
+        DecodeDate dd = new DecodeDate();
+        datex = dd.decode(datex);
+        ddmmccyyDate = datex;
+    } // end of constructor
+
+    
+   // ======================================
+   /** 
+    * Method to run class tests.
+    * 
+    * @param args Value is string array - possibly empty - of command-line values. 
+    * @return void
+    */     
+    public static void main(String[] args)
+    {
+        println "--- starting DateSupport ---"
+
+        DateSupport obj = new DateSupport();
+        if (obj.isIsoDate("2017-12-23"))
+        {
+            println "... getIsoDate(1921-12-25)="+obj.getIsoDate("2017-12-23");
+        }
+
+        if (obj.isIsoDate("1921-12-25"))
+        {
+            println "... getIsoDate(1921-12-25)="+obj.getIsoDate("1921-12-25");
+        }
+        //System.exit(0);
+
+        try{
+            obj.hasValidSeparator();             
+        }
+        catch(RuntimeException x) {
+            println "... obj.hasValidSeparator() failed - missing parameter"
+        }
+
+        println "... obj.datex=|${obj.datex}|"
+
+        // fails on ... getNextDate error:Unparseable date: "29/09/2017"
+        def xx = obj.getNextDate("29/09/2017",7)
+
+        boolean ok = obj.isIsoDate('2017-09-21')
+        String ans = obj.getIsoDate('2017-09-21').toString();
+        println "... ok=${ok} for 2017-09-21 ans = |${ans}| ddmmccyyDate=|${obj.ddmmccyyDate}|"
+        assert ok == true;
+        assert ans.startsWith("Thu Sep 21 ") == true
+
+        println "... to convert dd/mm/yyyy strings into a Date() object"
+
+        println "... today is "+obj.datex;
+        if (obj.isDate(obj.datex))
+        {
+            println "... getDate(${obj.datex})="+obj.getDate(obj.datex);
+        }
+        else
+        {
+            if (obj.isIsoDate(obj.isodate))
+            {
+                println "... getIsoDate(${obj.isodate})="+obj.getIsoDate(obj.isodate);
+            }
+        } // end of else
+
+        ans = obj.isDate("03/02/2018");
+        println "... and 03/02/2018 answer was "+ans;
+        if (ans)
+        {
+            println "... getDate(03/02/2018)="+obj.getDate("03/02/2018");
+        }
+        else
+        {
+            println "... date 03/02/2018 failed."
+        }
+
+        if (obj.isDate(" 7 /09-2017"))
+        {
+            println "... getDate( 7 /09-2017)="+obj.getDate(" 7 /09-2017");
+        }
+
+        if (obj.isDate("/09-2017"))
+        {
+            println "... getDate(/09-2017)="+obj.getDate("/09-2017");
+        }
+
+        if (obj.isDate("17/09-17"))
+        {
+            println "... getDate(17/09-17)="+obj.getDate("17/09-17");
+        }
+
+        if (obj.isDate(" 7 //"))
+        {
+            println "... getDate( 7 //)="+obj.getDate(" 7 //");
+        }
+
+        if (obj.isDate("31/09/2017"))
+        {
+            println "... getDate(31/09/2017)="+obj.getDate("31/09/2017")+"\n... as "+obj;
+        }
+
+        if (obj.isDate("32/09/2017"))
+        {
+            println "... getDate(32/09/2017)="+obj.getDate("32/09/2017");
+        }
+ 
+        if (obj.isDate("2018/32/109 "))
+        {
+            println "... getDate(2018/32/109 )="+obj.getDate("2018/32/109 ");
+        }
+
+        if (obj.isDate("31/09/17"))
+        {
+            println "... getDate(31/09/17)="+obj.getDate("31/09/17");
+        }
+
+        if (obj.isDate("9/31/1917"))
+        {
+            println "... getDate(9/31/1917)="+obj.getDate("9/31/1917");
+        }
+
+        // ========================== ========================
+        println ""
+        println "... try ISO dates -"
+
+        println "... today is "+obj.isodate;
+        if (obj.isIsoDate(obj.isodate))
+        {
+            println "... getIsoDate(${obj.isodate})="+obj.getIsoDate(obj.isodate);
+        }
+
+        if (obj.isIsoDate("30/09/2017"))
+        {
+            println "... getIsoDate(30/09/2017) ="+obj.getIsoDate("30/09/2017");
+        }
+
+        if (obj.isIsoDate("2017-09-30"))
+        {
+            println "... getIsoDate(2017-09-30)="+obj.getIsoDate("2017-09-30");
+        }
+
+        if (obj.isIsoDate("2017-19-30"))
+        {
+            println "... getIsoDate(2017-19-30)="+obj.getIsoDate("2017-19-30");
+        }
+
+        if (obj.isIsoDate("2017-09-39"))
+        {
+            println "... getIsoDate(2017-09-39)="+obj.getIsoDate("2017-09-39");
+        }
+
+        if (obj.isIsoDate("17-09-30"))
+        {
+            println "... getIsoDate(17-09-30)="+obj.getIsoDate("17-09-30");
+        }
+
+        if (obj.isIsoDate("1921-12-25"))
+        {
+            println "... getIsoDate(1921-12-25)="+obj.getIsoDate("1921-12-25");
+        }
+
+        if (obj.isIsoDate("1921-13-31"))
+        {
+            println "... getIsoDate(1921-13-31)="+obj.getIsoDate("1921-13-31");
+        }
+
+        if (obj.isIsoDate("1921- -31"))
+        {
+            println "... getIsoDate(1921- -31)="+obj.getIsoDate("1921- -31");
+        }
+
+        if (obj.isIsoDate("1921-0-31"))
+        {
+            println "... getIsoDate(1921-0-31)="+obj.getIsoDate("1921-0-31");
+        }
+
+        if (obj.isIsoDate("1 21-10-30"))
+        {
+            println "... getIsoDate(1 21-10-30)="+obj.getIsoDate("1 21-10-30");
+        }
+
+        ["1921-10-31","2017/12/31","25.12.2018","2017.12.25", "2 17-4-4", ",", "//","1/1/1", " "].each{e->
+            println "... is [${e}] valid ? "+obj.hasValidSeparator(e)+" separatorType=${obj.separatorType} how many tokens ? ${obj.tokens.size()}"
+        } // end of each
+
+        ["Hi kids?=","23","0123456789","1 2345","678\n89"].each{v-> 
+            println "... |${v}| has valid numbers - valid ? ="+obj.validate(v);
+        } // end of each
+
+        DateSupport ds2 = new DateSupport(true);
+
+        println "... today is "+ds2.datex;
+        if (ds2.isDate(ds2.datex))
+        {
+            println "... getDate(${ds2.datex})="+ds2.getDate(ds2.datex);
+        }
+
+        println "--- the end of DateSupport ---"
+    } // end of main
 
 
    /** 
@@ -96,11 +321,11 @@ import static java.util.Calendar.*
     * @param s holds string used in a token after splitting by a separator
     * @return boolean true when all characters are valid and allowable but false if a non 0..9 char. found
     */     
-    public boolean validate(String s)
+    private boolean validate(String s)
     {
         boolean tf = true;
         s.each{e-> 
-            print e; 
+            //say "|"+e+"|"; 
             if (e in valid) {} else {tf=false;}
         } // end of each
         return tf;
@@ -110,21 +335,25 @@ import static java.util.Calendar.*
    /** 
     * Method to test if text string has a valid known date separator
     * 
-    * if valid date string then tokens[] holds 3 pieces
-    * and separatorType has a positive value of 1 or 2 or 3 if txt date string contains known date separator of . / -
+    * if valid date string then tokens[] holds 3 pieces or 5 pieces
+    * and separatorType has a positive value of 1 or 2 or 3 if txt date string contains known date separator of . / - or blank
     *
     * @param txt holds string used to count the separators
     * @return boolean true when a known separator is in string and has two ocurences and tokens[] are set
     */     
-    public boolean hasValidSeparator(String txt)
+    private boolean hasValidSeparator(String txt)
     {
+        if (txt==null) { throw new RuntimeException("hasValidSeparator requires string argument - this one is missing."); }
+
         boolean flag = false;
         datex = txt;
         isodate = txt;
         separatorType = 0;
+        tokens=[]
 
         String t2 = (txt.size() > 10) ? txt.substring(0,9).trim() : txt.trim();
         
+        int t2spaces = t2.count(" ");
         int t2dot = t2.count(".");
         int t2slash = t2.count("/");
         int t2dash = t2.count("-");
@@ -147,13 +376,25 @@ import static java.util.Calendar.*
             tokens = txt.trim().split('-')
         } // end of if
 
-        if (separatorType > 0 && tokens.size() == 3)
+        // |Sat Feb 03 11:47:05 IST 2018|  found in India
+        if (t2spaces==5)
+        {
+            separatorType = 4;
+            tokens = txt.trim().split(' ')
+        } // end of if
+
+        if (separatorType > 0 && separatorType < 4 && tokens.size() == 3)
+        {
+               flag = true;
+        } // end of if
+        else
+        if (separatorType == 4 && tokens.size() == 5)
         {
                flag = true;
         } // end of if
 
         // test each char. of each token to confirm within 0-9 range
-        if (flag)
+        if (flag && separatorType != 4)
         {
             tokens.each{v-> 
                 if (!validate(v.trim())) { flag = false; }
@@ -198,8 +439,8 @@ import static java.util.Calendar.*
             // if dd and mm valid, try to see if those values are dd-mm or mm-dd declared
             if (flag2 && flag3)
             {   
-                //println "... isDate(${txt}) found intDay=|${intDay}| and intMo=|${intMo}| and dim[intMo]=|${dim[intMo]}|"
-                if (intDay > dim[intMo] ) { flag2 = false; println "... flag2=false"; }
+                //say "... isDate(${txt}) found intDay=|${intDay}| and intMo=|${intMo}| and dim[intMo]=|${dim[intMo]}|"
+                if (intDay > dim[intMo] ) { flag2 = false; say "... flag2=false"; }
             } // end of if
 
             // do the year
@@ -228,6 +469,7 @@ import static java.util.Calendar.*
         if (!yn)
         {
             say "... |${txt}| could not be converted as format dd/mm/yyyy";
+            say "... yn=$yn && flag1=$flag1 && flag2=$flag2 && flag3=$flag3 && flag4=$flag4"
         }
 
         return yn;
@@ -243,8 +485,10 @@ import static java.util.Calendar.*
     *
     * @return Date object equivalent of datex txt string 
     */     
-    public Date getDate()
+    public Date getDate(String txt)
     {
+        boolean yn = hasValidSeparator(txt);
+
         //def tokens = datex.trim().split('/')
         def otherDate = new Date();
 
@@ -258,6 +502,8 @@ import static java.util.Calendar.*
             // don't let years thru is before 1900 or after 2100
             if (intYr > 0 && intYr < 100) { intYr += 2000; }                 
               
+            ddmmccyyDate = "${intDay}/${intMo}/${intYr}"
+
             // over-write pieces of our date with provided values of ccyy or yy or mm or dd 
             otherDate[YEAR] = intYr
             otherDate[MONTH] = intMo -1
@@ -280,11 +526,17 @@ import static java.util.Calendar.*
    /** 
     * Method to convert isodate text string of a date in format of yyyy-mm-dd into a date object
     * 
+    * you must call hasValidSeparator() to fill tokens[]
+    *
     * @return Date object equivalent of iso date txt string 
     */     
-    public Date getIsoDate()
+    public Date getIsoDate(String txt)
     {
         def otherDate = new Date();
+        say "... DateSupport.getIsoDate(${txt}) today's Date is=|${otherDate.toString()}|"
+
+        boolean yn = hasValidSeparator(txt);
+        say "... DateSupport yn=${yn}  tokens= tokens[0]=|${tokens[0]}| tokens[1]=|${tokens[1]}| tokens[2]=|${tokens[2]}| "
 
         try
         {
@@ -293,13 +545,22 @@ import static java.util.Calendar.*
             def intMo = tokens[1].trim().isInteger() ? tokens[1].trim().toInteger() : 0               
             def intYr = tokens[0].trim().isInteger() ? tokens[0].trim().toInteger() : 0  
 
+            say "... DateSupport tokens= tokens[0]=|${tokens[0]}| tokens[1]=|${tokens[1]}| tokens[2]=|${tokens[2]}| "
+            say "... DateSupport tokens= intDay=|${intDay}| intMo=|${intMo}| intYr=|${intYr}| "
+
             // don't let years thru is before 1900 or after 2100
-            if (intYr > 0 && intYr < 100) { intYr += 2000; }                 
-              
-            otherDate[YEAR] = intYr
+            //if (intYr > 0 && intYr < 100) { intYr += 2000; }                 
+
+            ddmmccyyDate = "${intDay}/${intMo}/${intYr}"
+
+            say "... otherDate today's date is =|${otherDate.toString()}| ddmmccyyDate=|${ddmmccyyDate}|"              
+            otherDate[YEAR] = intYr;
             otherDate[MONTH] = intMo - 1;
-            otherDate[DATE] = intDay
-            //say "... converted iso string |${isodate}| into |${otherDate}| ok; intYr=|${intYr}| intMo=|${intMo}| intDay=|${intDay}|"
+            otherDate[DATE] = intDay;
+            say "... otherDate=|${otherDate.toString()}| after applying tokens"
+
+            say "... converted iso string month |${tokens[1]}| into |${otherDate}| ok; intYr=|${intYr}| intMo=|${intMo}| intDay=|${intDay}|"
+            say "    and ddmmccyyDate=|${ddmmccyyDate}|"
         }
 
         catch (Exception x)
@@ -321,8 +582,9 @@ import static java.util.Calendar.*
     */     
     public boolean isIsoDate(String txt)
     {
+        // this fills in the tokens[]
         boolean yn = hasValidSeparator(txt)
-        println "... isIsoDate of |${txt}| yn=|$yn|"
+        say "... isIsoDate of |${txt}| yn=|$yn|"
         isodate = txt;
 
         boolean flag1 = (yn && tokens.size() == 3) ? true : false;
@@ -340,7 +602,7 @@ import static java.util.Calendar.*
 
             if (flag4 && flag3)
             {   
-                //println "... intDay=|$intDay| & intMo=|$intMo|"
+                say "... intDay=|$intDay| & intMo=|$intMo| "
                 if (intDay > dim[intMo] ) { flag4 = false; }
             } // end of if
 
@@ -351,6 +613,7 @@ import static java.util.Calendar.*
 
             if (flag1 && flag2 && flag3 && flag4)
             {                
+                say "... intDay=|$intDay| & intMo=|$intMo|  intYr=|${intYr}| yn=true"
                 yn = true;
                 isodate = txt;
                 //say "... can convert string |${txt}| into iso date - ok"
@@ -403,14 +666,15 @@ java.io.File.separator=${java.io.File.separator}
     */     
     public void say(txt)
     {
-        println txt;
+        if (logFlag) { log.info txt; }
     }  // end of method
+
 
    /** 
     * Method to test dates.
     * 
-    * @param the date text string  
-    * @return void
+    * @param txt the date text string  
+    * @return true boolean if string can be made into a Date or false if not
     */     
     public boolean check(txt)
     {
@@ -422,12 +686,12 @@ java.io.File.separator=${java.io.File.separator}
         
         try {
             cal.setTime(dateFormat.parse(txt));
-            println "... check Date todayDate=|${todayDate}|";
+            say "... check Date todayDate=|${todayDate}|";
             ok = true;
         } 
         catch (Exception ex) 
         {
-            println "... check error:"+ex.message;
+            say "... check error:"+ex.message;
         }
         
         return ok;
@@ -439,7 +703,7 @@ java.io.File.separator=${java.io.File.separator}
     * 
     * @param the date text string  ccyy-mm-dd
     * @param days interval  a plus/minus integer value of the number of days to change this date 
-    * @return void
+    * @return Date if date string was changed to a date then added to or reduced by number of days but NULL if impossible
     */ 
     private Date getNextDate(String givenDate,int noOfDays) 
     {
@@ -450,179 +714,14 @@ java.io.File.separator=${java.io.File.separator}
             cal.setTime(dateFormat.parse(givenDate));
             cal.add(Calendar.DATE, noOfDays);
             now = cal.getTime();
-            println "... getNextDate Date now=|${now}|"
+            say "... getNextDate Date now=|${now}|"
         } 
         catch (Exception ex) 
         {
-            println "... getNextDate error:"+ex.message;
+            say "... getNextDate error:"+ex.message;
         }
 
         return now;
     } // end of getNextDate
     
-    
-   // ======================================
-   /** 
-    * Method to run class tests.
-    * 
-    * @param args Value is string array - possibly empty - of command-line values. 
-    * @return void
-    */     
-    public static void main(String[] args)
-    {
-        println "--- starting DateSupport ---"
-        println "... to convert dd/mm/yyyy strings into a Date() object"
-
-        DateSupport obj = new DateSupport();
-
-        println "... today is "+obj.datex;
-        if (obj.isDate(obj.datex))
-        {
-            println "getDate()="+obj.getDate();
-        }
-
-        println ""
-
-        boolean ans = obj.isDate("29/09/2017");
-        println "... and answer was "+ans;
-        if (ans)
-        {
-            println "getDate()="+obj.getDate();
-        }
-
-        println ""
-        if (obj.isDate(" 7 /09-2017"))
-        {
-            println "getDate()="+obj.getDate();
-        }
-
-        println ""
-        if (obj.isDate("/09-2017"))
-        {
-            println "getDate()="+obj.getDate();
-        }
-
-        println ""
-        if (obj.isDate("17/09-17"))
-        {
-            println "getDate()="+obj.getDate();
-        }
-
-        println ""
-        if (obj.isDate(" 7 //"))
-        {
-            println "getDate()="+obj.getDate();
-        }
-
-        println ""
-        if (obj.isDate("31/09/2017"))
-        {
-            println "getDate()="+obj.getDate()+"\n... as "+obj;
-        }
-
-        println ""
-        if (obj.isDate("32/09/2017"))
-        {
-            println "getDate()="+obj.getDate();
-        }
-
-        println ""
-        if (obj.isDate("2018/32/109 "))
-        {
-            println "getDate()="+obj.getDate();
-        }
-        println ""
-        if (obj.isDate("31/09/17"))
-        {
-            println "getDate()="+obj.getDate();
-        }
-
-        println ""
-        if (obj.isDate("9/31/1917"))
-        {
-            println "getDate()="+obj.getDate();
-        }
-
-        // ==================================================
-        println ""
-        println "... try ISO dates -"
-
-        println "... today is "+obj.isodate;
-        if (obj.isIsoDate(obj.isodate))
-        {
-            println "getIsoDate()="+obj.getIsoDate();
-        }
-
-        println ""
-        if (obj.isIsoDate("30/09/2017"))
-        {
-            println "getIsoDate()="+obj.getIsoDate();
-        }
-
-        println ""
-        if (obj.isIsoDate("2017-09-30"))
-        {
-            println "getIsoDate()="+obj.getIsoDate();
-        }
-
-        println ""
-        if (obj.isIsoDate("2017-19-30"))
-        {
-            println "getIsoDate()="+obj.getIsoDate();
-        }
-        println ""
-        if (obj.isIsoDate("2017-09-39"))
-        {
-            println "getIsoDate()="+obj.getIsoDate();
-        }
-
-        println ""
-        if (obj.isIsoDate("17-09-30"))
-        {
-            println "getIsoDate()="+obj.getIsoDate();
-        }
-
-        println ""
-        if (obj.isIsoDate("1921-12-25"))
-        {
-            println "getIsoDate()="+obj.getIsoDate();
-        }
-
-        println ""
-        if (obj.isIsoDate("1921-13-31"))
-        {
-            println "getIsoDate()="+obj.getIsoDate();
-        }
-
-        println ""
-        if (obj.isIsoDate("1921- -31"))
-        {
-            println "getIsoDate()="+obj.getIsoDate();
-        }
-
-        println ""
-        if (obj.isIsoDate("1921-0-31"))
-        {
-            println "getIsoDate()="+obj.getIsoDate();
-        }
-
-
-        println ""
-        if (obj.isIsoDate("1 21-10-30"))
-        {
-            println "getIsoDate()="+obj.getIsoDate();
-        }
-
-        println ""
-        ["1921-10-31","2017/12/31","25.12.2018","2017.12.25", "2 17-4-4", ",", "//","1/1/1", " "].each{e->
-            println "... is [${e}] valid ? "+obj.hasValidSeparator(e)+" separatorType=${obj.separatorType} how many tokens ? ${obj.tokens.size()}"
-        } // end of each
-
-        ["Hi kids?=","23","0123456789","1 2345","678\n89"].each{v-> 
-            println ' '+obj.validate(v);
-        } // end of each
-
-        println "--- the end of DateSupport ---"
-    } // end of main
-
 } // end of class

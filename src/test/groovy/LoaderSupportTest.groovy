@@ -17,22 +17,19 @@ class LoaderSupportTest extends Specification {
         	result == "LoaderSupport"
     } // end of method
 
-/*    
-    def "Add 7 days to Java Date value"() {
+
+    def "Load text string to create a Cell"() {
         setup:
-		    Date datex = Date.parse('yyy-MM-dd','2017-01-01');
-	        Loader obj = new Loader();
+		    String tx = /  78   2017-01-21 A -1.23 6   true  "'Haircuts Are   Us'"  | 'Mad Max' /;
+	        LoaderSupport obj = new LoaderSupport(true);
 			
 		when:
-			def ans = obj.check("2017-12-13");			
-			def ans2 = obj.check(datex.toString());			
+			def ans = obj.loadReason(tx);			
+			println "... LoaderSupportTest.load()="+ans.toString();			
 
 		then:
-			ans == true;
-			ans2 == true;
-			//dat[MONTH] == d[MONTH];
-			//dat[DATE] == d[DATE];
+		    ans.reason == /Haircuts Are   Us/
+		    ans.name == /Mad Max/
 	} // end of method
-*/
 
 } // end of class

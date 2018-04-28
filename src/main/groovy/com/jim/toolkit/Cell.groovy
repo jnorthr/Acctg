@@ -3,7 +3,9 @@ package com.jim.toolkit;
 // http://mrhaki.blogspot.fr/2009/08/groovy-goodness-bound-and-constrained.html explains constraints
 import groovy.transform.*;
 import groovy.beans.*
-import com.jim.toolkit.database.H2TableSupport;
+import com.jim.toolkit.database.H2TableMethods;
+import groovy.util.logging.Slf4j;
+import org.slf4j.*
 
 /*
  * Copyright 2017 the original author or authors.
@@ -35,7 +37,7 @@ import com.jim.toolkit.database.H2TableSupport;
  *           this.setBinding(b)
  *       }  // end of method
  */
-
+@Slf4j
 @Canonical 
 @Bindable 
 public class Cell
@@ -65,9 +67,15 @@ public class Cell
     
     
    /** 
+    * a unique integer value of a currency for this transaction, so 1 is for ISO 978 = 'EUR'.
+    */  
+    int ccy=1;
+
+
+   /** 
     * a unique integer value of a client in the Client file.
     */  
-    int number=0;
+    int client=0;
 
 
    /** 
@@ -80,6 +88,12 @@ public class Cell
     * Text variable describing the reason for this transaction.
     */  
     String reason='unknown';
+
+
+   /** 
+    * Text variable describing the name of author of this transaction.
+    */  
+    String name='';
 
 
    /** 
@@ -102,6 +116,27 @@ public class Cell
         return ty;
     } // end of cvtType
     
+
+   /** 
+    * Method to translate our internal CCY currency variable of 1,2 or 3 into man-readable text.
+    * 
+    * @return formatted content of CCY variable
+    */     
+    String cvtCcy(int ourcode)
+    {
+        def ty="Unk"
+        switch(ourcode)
+        {
+            case '1': ty = 'EUR'
+                     break;
+            case '2': ty = 'GBP'
+                     break;
+            case '3': ty = 'USD'
+                     break;
+        } // end of switch
+        return ty;
+    } // end of cvtCcy
+    
     
    /** 
     * Method to set internal variables from a groovy Binding var.
@@ -111,13 +146,15 @@ public class Cell
     */     
     public setBinding(Binding b)
     {
-        this.id    = (b.hasVariable("id")) ? b.getVariable("id") : 0;        
-        this.date    = (b.hasVariable("date")) ? b.getVariable("date") : new Date();
-        this.type    = (b.hasVariable("type")) ? b.getVariable("type") : ' ';
+        this.id      = (b.hasVariable("id"))     ? b.getVariable("id") : 0;        
+        this.date    = (b.hasVariable("date"))   ? b.getVariable("date") : new Date();
+        this.type    = (b.hasVariable("type"))   ? b.getVariable("type") : ' ';
         this.amount  = (b.hasVariable("amount")) ? b.getVariable("amount") : 0;
-        this.number  = (b.hasVariable("number")) ? b.getVariable("number") : 0;
-        this.flag    = (b.hasVariable("flag")) ? b.getVariable("flag") : false;               
+        this.ccy     = (b.hasVariable("ccy"))    ? b.getVariable("ccy") : 1;
+        this.client  = (b.hasVariable("client")) ? b.getVariable("client") : 0;
+        this.flag    = (b.hasVariable("flag"))   ? b.getVariable("flag") : false;               
         this.reason  = (b.hasVariable("reason")) ? b.getVariable("reason") : " ";
+        this.name    = (b.hasVariable("name"))   ? b.getVariable("name") : " ";
     } // end of method
     
     
@@ -129,7 +166,8 @@ public class Cell
     */     
     public int setId()
     {
-        H2TableSupport ts = new H2TableSupport()
+    	// defaults to looking for highest Id in 'core' H2 table.
+        H2TableMethods ts = new H2TableMethods()
         int max = ts.max();
 
         if (this.id==0 || !(this.id > max) )
@@ -149,7 +187,7 @@ public class Cell
     */     
     public String toOutput()
     {
-        return id + '; "' + date.format("yyyy-MM-dd") + '"; "' + type + '"; ' + amount + '; ' + number + '; "' + flag + '"; "' + reason + '";';
+        return id + '; "' + date.format("yyyy-MM-dd") + '"; "' + type + '"; ' + amount + '; ' + ccy + '; ' + client + '; "' + flag + '"; "' + reason + '" | "'+name+'"; ';
     }    
 
 
@@ -161,7 +199,7 @@ public class Cell
     @Override
     public String toString()
     {
-        return id + ' ' + date.format("yyyy-MM-dd") + ' ' + type + ' ' + amount + ' ' + number + ' ' + flag + ' ' + reason;
+        return id + ' ' + date.format("yyyy-MM-dd") + ' ' + type + ' ' + amount + ' ' + ccy + ' ' + client + ' ' + flag + ' "' + reason + '"  "' + name+'"';
     }  // end of string
 
 
@@ -172,7 +210,7 @@ public class Cell
     */     
     public Map toMap() 
     {
-        Map builder = [id:id, date:date.format("yyyy-MM-dd").toString(), type:type.toString(), amount:amount, number:number, flag:flag, reason:reason.toString()];
+        Map builder = [id:id, date:date.format("yyyy-MM-dd").toString(), type:type.toString(), amount:amount, ccy:ccy, client:client, flag:flag, reason:reason.toString(), name:name.toString()];
         return builder;
    } // end of method
 
@@ -185,7 +223,7 @@ public class Cell
     */     
     public void say(txt)
     {
-        println txt;
+        log.info txt;
     }  // end of method
 
 
@@ -201,7 +239,7 @@ public class Cell
         println "--- starting Cell ---"
         Date dat = Date.parse('yyy-MM-dd','2017-01-01');
 
-        Cell obj = new Cell([date:dat, type:'A', number:123, amount:-123.45, id:0, flag:true, reason:'Start'])
+        Cell obj = new Cell([id:1199, date:dat, type:'A', amount:-123.45, ccy:1, client:123, flag:true, reason:'Start here.', name:'Fred Mertz'])
 
         println "Cell.toString() = [${obj.toString()}]"
         println "Cell.toOutput() = [${obj.toOutput()}]"
@@ -210,7 +248,19 @@ public class Cell
         println "\n--------------------------------" 
         def cellmap = obj.toMap();
         cellmap.each{k,v-> println "... cellmap k=[${k}] v=[${v}]"}
+
+        assert cellmap['id'] == 1199
+        assert cellmap['date'] == "2017-01-01"
+        assert cellmap['type'] == 'A'
+        assert cellmap['amount'] == -123.45
+        assert cellmap['ccy'] == 1
+        assert cellmap['client'] == 123
+        assert cellmap['flag'] == true
+        assert cellmap['reason'] == "Start here."
+        assert cellmap['name'] == "Fred Mertz"
+
         println "--------------------------------\n"
+        assert obj.cvtCcy(1) == 'EUR'
         
         println "... try TupleConstructor: http://mrhaki.blogspot.fr/2011/05/groovy-goodness-canonical-annotation-to.html"
         boolean yn = true;

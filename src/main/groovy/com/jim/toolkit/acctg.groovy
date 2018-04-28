@@ -1,10 +1,13 @@
 package com.jim.toolkit;
 
-//import com.jim.toolkit.tools.DateSupport;
+import groovy.util.logging.Slf4j;
+import org.slf4j.*
+
 import com.jim.toolkit.tools.ClientSupport;
 
 import groovy.transform.*;
 import com.jim.toolkit.database.H2TableSupport;
+import com.jim.toolkit.database.H2TableMethods;
 
 /*
  * Copyright 2017 the original author or authors.
@@ -27,7 +30,8 @@ import com.jim.toolkit.database.H2TableSupport;
  *
  * This is a class to hold a list of Cell objects
  *
- */ 
+ */
+ @Slf4j 
  @Canonical 
  public class Acctg
  {
@@ -48,6 +52,18 @@ import com.jim.toolkit.database.H2TableSupport;
     /**  establish Sql connection object to 'core' table */
 	H2TableSupport h2 = new H2TableSupport();
     
+    /**  establish connection object for load of 'core' table */
+	H2TableMethods h2tm = new H2TableMethods();
+
+   /** 
+    * Variable holding report of most recent currency.
+    */  
+    String payload = "";
+
+   /** 
+    * Variable set to true if logging printouts are needed or false if not
+    */  
+    Boolean logFlag = false;
     
    // =========================================================================
    /** 
@@ -56,35 +72,99 @@ import com.jim.toolkit.database.H2TableSupport;
     * defaults to initialize vars     */
     public Acctg()
     {
-        //println "\nAcctg constructor()"
-		cells = h2.load();
+        if (logFlag) 
+        { 
+        	log.info "\nAcctg constructor()";
+        }
+		cells = h2tm.load();
     } // end of constructor
+
+
+   /** 
+    * Class constructor.
+    *
+    * non-default constructor to initialize vars     */
+    public Acctg(Boolean ok)
+    {
+        logFlag = ok;
+
+        if (logFlag) 
+        { 
+            log.info "\nAcctg constructor()";
+        }
+
+        cells = h2tm.load();
+    } // end of non-default constructor
+
+
+    /*
+     * Save a string of data to a writer as external UTF-8 file with provided filename 'fn'
+     */
+    public boolean save(String fn, String data)
+    {
+        if (logFlag) 
+        { 
+            log.info "... saving "+fn;
+        }
+        
+        try{
+	        // Or a writer object:
+    	    new File(fn).withWriter('UTF-8') { writer ->
+        	        writer.write(data)
+        	} // end of write    
+	    }
+	    catch (Exception e)
+	    {
+	        if (logFlag) 
+    	    { 
+        	    log.info "... save(${fn}) exception due to malformed groovy script :"+e.message;
+        	}		    
+	    	throw new RuntimeException(e.message) 
+	    }
+	    
+        if (logFlag) 
+        { 
+            log.info "... saved ${data.size()} bytes to "+fn+'\n-----------------------\n';
+        }
+        return true;
+    } // end of method
+
 
    /** 
     * Method to display balance report.
     * 
     * @return final balance after totalling all transactions
     */     
-    public BigDecimal report()
+    public BigDecimal report(int curr)
     {
-    	//cells.each{ce-> println "... report ce="+ce.toString();}
-
-		def sortedByDate = cells.sort();  //.toSorted { a, b -> a.d <=> b.d }
-		BigDecimal balance = 0;
-		def typeName = ['A':'Balance','B':'Income','C':'Expense']
-
-		println "\n\n====================\n                     Balance Report        Dated: ${dt.format('dd MMMM, yyyy')}"
-		println "\n  Row Purpose    Client          D a t e          Value        Balance     Reason"
+        if (logFlag) 
+        { 
+        	cells.each{ce-> log.info "... report ce="+ce.toString();}
+        }
 
 		def sb = "";
+
+		def sortedByDate = cells.sortCCY(curr);  //.toSorted { a, b -> a.d <=> b.d }
+
+		BigDecimal balance = 0;
+		BigDecimal total = 0;
+        String currency = cvtCcy(curr)
+
+		def typeName = ['A':'Balance','B':'Income','C':'Expense']
+
+        sb += "==                                      ${currency} Balance Report             \n"
+        sb += ".${dt.format('dd MMMM, yyyy')}\n[source,groovy,linenums]\n----\n"
+		sb += "Row Purpose    Client          D a t e          Value CCY     Balance         Total       Reason\n"
+
 
 		sortedByDate.each{e->
 
 			def tn = typeName[e.type.toString()]
 			def cy = (e.flag.toString().toLowerCase()=="true") ? "Y" : "N"; 
-			String na = cs.getClient(e.number);
+			String na = cs.getClient(e.client);
+            currency = cvtCcy(e.ccy)
 
-			sb += e.id.toString().padLeft(5)
+			sb += e.id.toString().padLeft(3)
 			sb += " ";
 			sb += tn.padRight(10)
 			sb += " ";
@@ -92,34 +172,73 @@ import com.jim.toolkit.database.H2TableSupport;
 			sb += "  ";
 			sb += e.date.format('dd-MM-yyyy').padRight(12)
 			sb += e.amount.toString().padLeft(12)
-			sb += " ";
-			sb += cy.padRight(6)
+            sb += " ";
+            sb += currency.padLeft(1)
+			sb += cy.padLeft(4)
 
 	        switch(e.type)
     	    {
-        	    	case 'C': balance -= e.amount;
+        	    	case 'C': if (!e.flag) { balance -= e.amount; }
+        	    			  total -= e.amount; 
             	    	      break;
+
             		case 'A': balance = e.amount;
+            				  total =  e.amount;
                 		      break;
-            		case 'B': balance += e.amount;
+
+            		case 'B': if (!e.flag) { balance += e.amount; }
+            				  total += e.amount; 
                 		      break;
         	} // end of switch
 
+
 			sb += balance.toString().padLeft(8)
+            sb += " ";
+            sb += currency
 			sb += "  ";
+			sb += total.toString().padLeft(8)
+            sb += " ";
+            sb += currency
 			sb += "   ";
-			na = cs.getReason(e.number);
+			na = cs.getReason(e.client);
 			sb += (na.size() > 0) ? na.padRight(26) : e.reason.padRight(26);
-		    println sb.toString();  // +' '+e.toString()+" -> Balance : "+balance;
+			sb += "\n";
+
+		    payload += sb.toString();  // +' '+e.toString()+" -> Balance : "+balance;
 		    sb = "";
         } // end of each
 
-		println "\n                                                               Balance     "
+		//payload += "\n                                                               Balance     "
 		dt = new Date();
-		println "Dated: ${dt.format('dd MMMM, yyyy')}"+ balance.toString().padLeft(46)
+		payload += "\n                                      Report Totals : "+ balance.toString().padLeft(15)+' '+currency+ total.toString().padLeft(10)+' '+currency
+
+		payload += "\n----\n"
+
         return balance;
     }  // end of method
 
+
+
+   /** 
+    * Method to translate our internal CCY currency variable of 1,2 or 3 into man-readable text.
+    * 
+    * @return formatted content of CCY variable
+    */     
+    String cvtCcy(int ourcode)
+    {
+        def ty="EUR"
+        switch(ourcode)
+        {
+            case '1': ty = 'EUR'
+                     break;
+            case '2': ty = 'GBP'
+                     break;
+            case '3': ty = 'USD'
+                     break;
+        } // end of switch
+        return ty;
+    } // end of cvtCcy
+    
 
    /** 
     * Method to display internal variables.
@@ -129,11 +248,13 @@ import com.jim.toolkit.database.H2TableSupport;
     public String toString()
     {
         def s = """classname=Acctg
+dt=${dt}
+cells=${cells}
+h2=${h2}
+h2tm=${h2tm}
+logFlag=${logFlag}
 """;
-        cells.each{ s+=it.toString();
-                    s+='\n';
-        } // end of each
-        return s;
+        return s.toString();
     }  // end of string
 
     
@@ -149,9 +270,13 @@ import com.jim.toolkit.database.H2TableSupport;
         println "--- starting Acctg ---"
         
         Acctg obj = new Acctg()
-        println "Acctg = \n${obj.toString()}\n-------------------------\n"
+        //println "Acctg = \n${obj.toString()}\n-------------------------\n"
 
-  		def bal = obj.report()
+  		def bal = obj.report(1)
+  		bal = obj.report(2)
+  		bal = obj.report(3)
+        String pl = "= Personal Reports\njnorthr <jim@google>\n:icons: font\n\n"+obj.payload;
+  		obj.save("xxx.adoc", pl)
 		
         println "--- the end of Acctg ---"
     } // end of main

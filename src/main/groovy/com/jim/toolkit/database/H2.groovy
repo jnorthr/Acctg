@@ -8,6 +8,9 @@ import java.util.Date;
 import groovy.sql.Sql
 import java.util.Random  
 
+import groovy.util.logging.Slf4j;
+import org.slf4j.*
+
 /*
  * Copyright 2017 the original author or authors.
  *
@@ -30,6 +33,7 @@ import java.util.Random
  * This is code with all bits needed to ask H2 database to construct and keep data for a project
  *
  */ 
+ @Slf4j
  @Canonical 
  public class H2
  {
@@ -44,11 +48,15 @@ import java.util.Random
     */  
     String classname = "H2";
 
-
    /** 
     * Variable name of current H2 table connection values.
     */  
 	def sql 
+
+   /** 
+    * Variable set to true if logging printouts are needed or false if not
+    */  
+    Boolean logFlag = false;
 
 
    /** 
@@ -58,11 +66,26 @@ import java.util.Random
     */     
     public H2()
     {
-        //say "... running H2 constructor written by Jim Northrop from home="+home;
+        say "... running H2 constructor written by Jim Northrop from home="+home;
 		sql = Sql.newInstance(address, "sa", "sa", "org.h2.Driver")
-		//say "... address="+address;
+		say "... address="+address;
     } // end of constructor
 
+
+
+   /** 
+    * Non-Default Constructor 
+    * 
+    * @param ok is a boolean flag to load into logFlag
+    * @return H2 object
+    */     
+    public H2(boolean ok)
+    {
+        logFlag = ok;
+        say "... running H2 constructor written by Jim Northrop from home="+home;
+        sql = Sql.newInstance(address, "sa", "sa", "org.h2.Driver")
+        say "... address="+address;
+    } // end of constructor
 
 
    /** 
@@ -77,6 +100,7 @@ user.home=${home}
 java.io.File.separator=${java.io.File.separator}
 address=${address}
 sql=${sql.toString()}
+logFlag=${logFlag}
 """
     }  // end of string 
 
@@ -90,7 +114,7 @@ sql=${sql.toString()}
     */     
     public void say(txt)
     {
-        println txt;
+        if (logFlag) { log.info txt; }
     }  // end of method
 
 
@@ -105,7 +129,7 @@ sql=${sql.toString()}
     public static void main(String[] args)
     {
         println "--- Start H2 ---"
-		H2 obj = new H2();
+		H2 obj = new H2(true);
 		println obj.toString();
         
         println "--- the end of H2 ---"

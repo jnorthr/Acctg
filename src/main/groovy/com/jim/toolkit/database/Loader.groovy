@@ -8,6 +8,9 @@ import com.jim.toolkit.tools.DateSupport;
 import com.jim.toolkit.database.LoaderSupport;
 import com.jim.toolkit.Cell;
 import com.jim.toolkit.Cells;
+
+import groovy.util.logging.Slf4j;
+import org.slf4j.*
 /*
  * Copyright 2017 the original author or authors.
  *
@@ -29,8 +32,9 @@ import com.jim.toolkit.Cells;
  *
  * This is logic to load a Cell from plain .txt file
  *
- * with expected format:   4; "2017-01-19"; "C"; 25.78; 10; "false"; "Burgers R Us";
+ * with expected format:   4; "2017-01-19"; "C"; 25.78; 1; 10; "false"; "Burgers R Us";
  */ 
+ @Slf4j
  @Canonical 
  public class Loader
  {
@@ -78,34 +82,39 @@ import com.jim.toolkit.Cells;
 	LoaderSupport ls = new LoaderSupport();
 
     /** a test string full of semi-colons */ 
-    String semicolonsample = "4; 2017-01-19; C; 25.78; 10; false; Burgers R Us";
+    String semicolonsample = "4; 2017-01-19; C; 25.78; 1; 10; false; Burgers R Us| My name is Fred";
 
     /** a test string full of semi-colons including trailing ; */ 
-    String semicolonsample2 = "4; 2017-01-19; C; 25.78; 10; false; Burgers R Us Again;";
+    String semicolonsample2 = "4; 2017-01-19; C; 25.78; 2; 10; false; Burgers R Us Again| My name is Fred;";
 
     /** a test string full of semi-colons w/o trailing ; and no optional Id number to start */ 
-    String semicolonsample3 = "2017-01-19; C; 25.78; 10; false; Burgers R Us Again";
+    String semicolonsample3 = "2017-01-19; C; 25.78; 3; 10; false; Burgers R Us Again| My name is Fred";
 
     /** a test string with minimum number of semi-colons w/o trailing ; and no optional Id number to start */ 
-    String semisample6 = " 2017-11-21; A; 0 ";
+    String semisample6 = " 2017-11-21; A; 1 ";
 
     /** a test string full of tokens divided by blanks and no optional Id number to start */ 
-    String spacesample = "2017-01-21 A -1.23 64 true reason for deed";
+    String spacesample = "2017-01-21 A -1.23 1 64 true reason for deed";
 
     /** a test string full of tokens divided by blanks and an optional Id number to start */ 
-    String spacesample2 = "78 2017-01-21 A -1.23 64 true Haircuts";
+    String spacesample2 = "78 2017-01-21 A -1.23 2 64 true Haircuts| My name is Fred";
     
     /** a test string full of tokens divided by blanks and an optional Id number to start & multi-token reason */ 
-    String spacesample3 = "78 2017-01-21 A -1.23 6 false Haircuts Are Us";
+    String spacesample3 = "78 2017-01-21 A -1.23 3 6 false Haircuts Are Us| My name is Fred";
 
     /** a test string full of tokens divided by blanks and no optional Id number to start */ 
-    String spacesample4 = " 2017-11-21 A 123.45 77 true Haircuts";
+    String spacesample4 = " 2017-11-21 A 123.45 1 77 true Haircuts|| My name is Fred";
 
     /** a test string of a reduced set of tokens divided by blanks and no optional Id number to start */ 
-    String spacesample5 = " 2017-11-21 A 123.45 77 true";
+    String spacesample5 = " 2017-11-21 A 123.45 2 77 true";
 
     /** a test string of a minimum set of tokens divided by blanks and no optional Id number to start */ 
     String spacesample6 = " 2017-11-21 A 123.45 ";
+
+   /** 
+    * Variable set to true if logging printouts are needed or false if not
+    */  
+    Boolean logFlag = false;
 
    // =========================================================================
    /** 
@@ -118,6 +127,16 @@ import com.jim.toolkit.Cells;
         c = new Cell();
     } // end of constructor
 
+   /** 
+    * Class constructor.
+    *
+    * non default constructor to initialize vars     */
+    public Loader(boolean tf)
+    {
+        logFlag = tf;
+        say "\nLoader constructor(${tf})"
+        c = new Cell();
+    } // end of constructor
 
    /** 
     * Method to count tokens in a ';' delimited string and if more than one then tokenize using semi-colons else use blanks.
@@ -186,21 +205,32 @@ import com.jim.toolkit.Cells;
     	        	c.amount = new BigDecimal(bdv.toString())
     	        }
 
+                // our internal currency code: 1=EUR, 2=GBP, 3=USD
+                if (tokens.size() > 3 && !ls.hasInteger(tokens[3].trim() ) ) 
+                { 
+                    verified = false; 
+                }
+                else
+                {
+                    if (tokens.size() > 3) { c.ccy = tokens[3].trim().toInteger() }
+                } // end of else
+
+
  				// client
-         	    if (tokens.size() > 3 && !ls.hasInteger(tokens[3].trim() ) ) 
+         	    if (tokens.size() > 4 && !ls.hasInteger(tokens[4].trim() ) ) 
         	    { 
         	    	verified = false; 
         	    }
         	    else
         	    {
-        	    	if (tokens.size() > 3) { c.number = tokens[3].trim().toInteger() }
+        	    	if (tokens.size() > 4) { c.client = tokens[4].trim().toInteger() }
         	    } // end of else
 
 
         	    // check true false
-        	    if (tokens.size() > 4)
+        	    if (tokens.size() > 5)
         	    {
-        	    	String tf = tokens[4].trim().toLowerCase();
+        	    	String tf = tokens[5].trim().toLowerCase();
         	    	if (tf!="true" && tf!="false") 
         	    	{ 
         	    		verified = false; 
@@ -214,7 +244,7 @@ import com.jim.toolkit.Cells;
         	else
         	{
         		// else first token is an integer and thus the optionl Id
-        		// "78 2017-01-21 A -1.23 6 false Haircuts Are Us"
+        		// "78 2017-01-21 A -1.23 1 6 false Haircuts Are Us"
 	            withId = true; 
 	            if (!ls.hasInteger(tokens[0].trim() ) ) { verified = false; } // Id
 
@@ -223,12 +253,14 @@ import com.jim.toolkit.Cells;
     	        String bdv = tokens[3].trim(); // BigDecimal Value amount
 				if (!ls.hasBigDecimal(bdv)) { verified = false; }
 
-        	    if (tokens.size() > 3 && !ls.hasInteger(tokens[4].trim() )) { verified = false; } // client
+        	    if (tokens.size() > 3 && !ls.hasInteger(tokens[4].trim() )) { verified = false; } // ccy
+
+                if (tokens.size() > 4 && !ls.hasInteger(tokens[5].trim() )) { verified = false; } // client
 
         	    // check true false
-        	    if (tokens.size() > 4)
+        	    if (tokens.size() > 5)
         	    {
-        	    	String tf = tokens[5].trim().toLowerCase();
+        	    	String tf = tokens[6].trim().toLowerCase();
         	    	if (tf!="true" && tf!="false") { verified = false; }
         	    } // end of if 
             } // end of else
@@ -252,7 +284,7 @@ import com.jim.toolkit.Cells;
 			switch (withId) {
 				case true : 
 					c.id = tokens[0].trim() as Integer; 
-					if ( ds.isIsoDate( tokens[1].trim() ) ) { c.date = ds.getIsoDate(); } 
+					if ( ds.isIsoDate( tokens[1].trim() ) ) { c.date = ds.getIsoDate( tokens[1].trim() ); } 
 					break;
 				default : 
 					break;
@@ -272,11 +304,11 @@ import com.jim.toolkit.Cells;
     public Cells load()
     {
         def file3 = new File('Acctg.txt')
-        H2TableSupport ts = new H2TableSupport()
+        H2TableMethods tm = new H2TableMethods()
 
 	    // Use a reader object:
     	int count = 0
-        int max = ts.max();
+        int max = tm.max();
         max+=1;
          
         def line
@@ -289,18 +321,18 @@ import com.jim.toolkit.Cells;
             	while (line = reader.readLine()) {
                 	if (line.trim().startsWith("//"))
                 	{
-                    	println line;
+                    	say line;
                 	}
                 	else
                 	{
-                    	print "\nCells.load() ="
-                    	println line;
+                    	say "\nCells.load() ="
+                    	say line;
 
                     	// 1; "2013-03-02"; "B"; 121.44; 2; "Pension"; "true";
                     	txs = line.split(';')
-                    	println "... txs.size()="+txs.size();
+                    	say "... txs.size()="+txs.size();
                     
-	                    def t1 = txs[0].trim(); // id
+	                    Integer t1 = txs[0].trim()  as Integer; // id
 
                 	    // get date
 	                    def t2 = txs[1].trim().substring(1); // date
@@ -310,40 +342,57 @@ import com.jim.toolkit.Cells;
         	            def dt = new Date(); // fix this later ???
         	            if (ds.isIsoDate(t2))
         				{
-            				dt = ds.getIsoDate();
+            				dt = ds.getIsoDate(t2);
         				}
 
-            	        println "... and t2 date of '${t2}' gave date:"+dt.toString();
+            	        say "... txs[1]=|${txs[1]}| and t2 date of '${t2}' gave date:"+dt.toString();
                     
                 	    // get type
                     	def t3 = txs[2].trim().substring(1,2); // type
-                    	println "... t3 type=|${t3}|"
+                    	say "... t3 type=|${t3}|"
 
                     	// get amount
-                    	println "... amt txs[3]=|${txs[3].trim()}|"  // amount
+                    	say "... amt txs[3]=|${txs[3].trim()}|"  // amount
                     	BigDecimal t4 = txs[3].trim() as BigDecimal;
-                    	println "... t4 amt=|${t4}|"
+                    	say "... t4 amt=|${t4}|"
                     
-	                    // get number
-    	                println "... client txs[4]=|${txs[4].trim()}|"  // client number
-        	            BigDecimal t5 = txs[4].trim() as BigDecimal;
-            	        println "... client num=|${t5}|"
+                        // get currency
+                        say "... ccy txs[4]=|${txs[4].trim()}|"  // currency number
+                        Integer t5 = txs[4].trim() as Integer;
+                        say "... ccy num=|${t5}|"
+                    
+	                    // get client
+    	                say "... client txs[5]=|${txs[5].trim()}|"  // client number
+        	            Integer t6 = txs[5].trim() as Integer;
+            	        say "... client num=|${t6}|"
 
 	                    // get flag
-    	                def t6 = txs[5].trim().substring(1,2).toUpperCase();    // flag
-        	            boolean f = (t6=='T') ? true : false;                        
-            	        println "... flag=|${t6}| f=$f"
+    	                def t7 = txs[6].trim().substring(1,2).toUpperCase();    // flag
+        	            boolean f = (t7=='T') ? true : false;                        
+            	        say "... flag=|${t7}| f=$f"
+
+                        // hold name
+                        def t9="";
 
 	                    // get reason
-    	                def t7 = txs[6].trim().substring(1);    // reason 
-        	            def ct7 = t7.indexOf('"');
-            	        if (ct7>-1) { t7 = t7.substring(0,ct7); }
-                	    println "... reason t7=|${t7}|"
+    	                def t8 = txs[7].trim().substring(1);    // reason | name combo.
 
-	                    println "\n"
+                        // find | if any then unstring part of it into 'name' field t9
+                        def ix = t8.indexOf('|')
+                        if (ix > -1) { t9 = t8.substring(ix+1); t8 = t8.substring(0,ix);  }
 
-	                    c = new Cell([date:dt, type:t3, amount:t4, number:t5, flag:f, reason:t7])
-    	                println c.toString();
+        	            def ct8 = t8.indexOf('"');
+            	        if ( ct8 > -1 ) { t8 = deQuote(t8); }
+
+            	        // dequote the name
+                        ct8 = t9.indexOf('"');
+                        if ( ct8 > -1 ) { t9 = deQuote(t9); }
+                	    say "... reason t8=|${t8}| & name t9=|${t9}|"
+
+	                    say "\n"
+
+	                    c = new Cell([id:t1, date:dt, type:t3, amount:t4, ccy:t5, client:t6, flag:f, reason:t8, name:t9])
+    	                say c.toString();
         	            count++;
             	        group.add(c);
                 	} // end of else
@@ -357,25 +406,56 @@ import com.jim.toolkit.Cells;
    } // end of method
 
 
+   /** 
+    * Method to remove outer double quotes " and/or outer single ' quotes from piece of text.
+    * 
+    * @param tx is text string  
+    * @return String value of all text after quote marks are removed
+    */     
+    public String deQuote(String tx)
+    {
+        String ans="";
+        ans= tx.trim();
+    
+        int j = ans.indexOf('"');
+        int je = ans.lastIndexOf('"');
+        if ( j > -1 && je > j ) { ans = ans.substring(j+1,je) }
+
+        int i = ans.indexOf("'");
+        int ie = ans.lastIndexOf("'");
+        if ( i > -1 && ie > i ) { ans = ans.substring(i+1,ie) }
+
+        int k = ans.indexOf('"');
+        if ( k > -1 ) { ans = ans.substring(0,k) }
+        
+        ans= ans.trim();
+ 
+        k = ans.indexOf('"');
+        if ( k > -1 ) { say "... deQuote($tx) still has end quote=|${ans}| at k=${k} and j=${j} je=${je}"}
+
+        return ans;
+    } // end of method
+
 
    /** 
     * Method to write all Cell objects to persistent store.
     * 
+    * @param cells holds a list of Cell objects
     * @return int number of rows written to Acctg.txt
     */     
     public int save(Cells cells)
     {
-        def file3 = new File('Acctg.txt')
+        def file3 = new File('Acctg2.txt')
         int count = 0
 
 
-        cells.each{e-> println "... e=|${e.toString()}|"
+        cells.each{e-> say "... e=|${e.toString()}|"
         } // end of each
 
         // Or a writer object:
         file3.withWriter('UTF-8') { writer ->
-              cells.each{e->
-                    e.id = count+=1;
+              cells.list.each{e->
+                    count+=1;
                     writer.write(e.toOutput()+'\n')
               } // end of each
         } // end of file3
@@ -413,13 +493,38 @@ import com.jim.toolkit.Cells;
     {
         Cells sells = new Cells();
         sells = load();
-        int count = sells.cells.size();
-        H2RowSupport h2 = new H2RowSupport();
-        sells.cells.each{e-> h2.add(e); }
-        clear();
+        int count = sells.list.size();
+        say "... Loader.load() count ="+count;
+
+        H2RowSupport h2 = new H2RowSupport(true);
+        sells.list.each{e-> 
+            say "... Loader.copy() e="+e;
+            h2.add(e); 
+        }
+        //clear();
         return count;
     } // end of method
    
+
+   /** 
+    * Method to copy any Cell objects into the H2 'core' table.
+    * 
+    * @param Cells holds a list of Cell objects
+    * @return integer count of the number of rows copied
+    */     
+    public int copy(Cells obj)
+    {
+        int count = obj.list.size();
+        say "... Loader.load() count ="+count;
+
+        H2RowSupport h2 = new H2RowSupport(true);
+        obj.list.each{e-> 
+            say "... Loader.copy() e="+e;
+            h2.add(e); 
+        }
+        //clear();
+        return count;
+    } // end of method
         
    /** 
     * Method to display internal variables.
@@ -449,7 +554,7 @@ ls=${ls.toString()}
     */     
     public void say(txt)
     {
-        println txt;
+        if (logFlag) { log.info txt; }
     }  // end of method
 
 
@@ -463,9 +568,18 @@ ls=${ls.toString()}
     public static void main(String[] args)
     {
         println "--- starting Loader ---"
-        Loader obj = new Loader();
-        def ct = obj.copy();
-        println "... Loader copied ${ct} rows"
+        Loader obj = new Loader(true);
+
+        Cells sells = obj.load()
+        println "... Loader read ${sells.size()} rows"
+        sells.list.each{c-> println "... c=|${c.toOutput()}|"; }
+
+        def ct = obj.copy(sells);
+        println "... Loader copied ${ct} rows into H2"
+
+        ct = obj.save(sells);
+        println "... Loader saved ${ct} cells"
+
         println "--- the end of Loader ---"
     } // end of main
 

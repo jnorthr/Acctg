@@ -8,8 +8,8 @@ import com.jim.toolkit.Cell;
 class CellTest extends Specification {
     def "Simple Cell constructor returns proper name of action"() {
         setup:
-		    Date dat = Date.parse('yyy-MM-dd','2017-01-01');
-			Cell obj = new Cell([date:dat, type:'B', amount:-123.45, number:123, flag:true, reason:'Start'])
+		    Date dat = Date.parse('yyy-MM-dd','2018-01-01');
+			Cell obj = new Cell([date:dat, type:'B', amount:-123.45, ccy:3, client:123, flag:true, reason:'Start here', name:'Mad Max'])
 		
         when:
         	def result = obj.cvtType()
@@ -18,43 +18,73 @@ class CellTest extends Specification {
 
         then:
         	result == "Income "
-        	obj.date.toString() == 'Sun Jan 01 00:00:00 CET 2017'
+        	obj.date.toString().startsWith('Mon Jan 01 00:00:00 ') == true
         	obj.type == 'B'
         	obj.amount == -123.45
-        	obj.number == 123
+            obj.ccy == 3
+        	obj.client == 123
         	obj.flag == true;
-        	obj.reason == 'Start'
+        	obj.reason == 'Start here'
+            obj.name == 'Mad Max'
+    } // end of test
+
+
+    def "Simple Cell constructor()"() {
+        setup:
+            Cell obj = null;            
+        when:
+            obj = new Cell();
+            def ty = obj.cvtType()
+            def myid = obj.setId() // pulls highest Id from 'core' table by default
+
+        then:
+            obj.toString().endsWith(/ A 0.00 1 0 false "unknown" ""/) == true
+            //obj.id == 0
+            //obj.date.toString() == '2018-01-01' -- depends on date this test  is run, so changed
+            obj.type == 'A'
+            obj.amount == 0.00
+            obj.ccy == 1
+            obj.client == 0
+            obj.flag == false;
+            obj.reason == 'unknown'   
+            obj.name == ''   
+            ty == 'Balance'  
+            myid == 0       
     } // end of test
     
     
     def "Simple Cell constructor using Map"() {
         setup:
-		    Date dat = Date.parse('yyy-MM-dd','2017-01-01');
+		    Date dat = Date.parse('yyy-MM-dd','2018-01-01');
 			Cell obj = null;
 			
         when:
 	        dat += 4;
-    	    Map m = [id:27, date:dat, type:'C', amount:-75.05, number:13, flag:true, reason:'Bingo'];
+    	    Map m = [id:27, date:dat, type:'C', amount:-75.05, ccy:2,  client:13, flag:true, reason:'Bingo', name:'Max'];
         	obj = new Cell(m);
 	        println "Cell(map).toString() = [${obj.toString()}]"
 	        def cellmap = obj.toMap();
 
         then:
         	obj.id == 27
-        	obj.date.toString() == 'Thu Jan 05 00:00:00 CET 2017'
+        	obj.date.toString().startsWith('Fri Jan 05 00:00:00 ') == true
         	obj.type == 'C'
         	obj.amount == -75.05
-        	obj.number == 13
+            obj.ccy == 2
+        	obj.client == 13
         	obj.flag == true;
         	obj.reason == 'Bingo'
+            obj.name == 'Max'
         	
         	cellmap instanceof Map
 			cellmap['id'] == 27
 			cellmap['flag'] == true
 			cellmap['type'] == 'C'
 			cellmap['amount'] == -75.05
+            cellmap['ccy'] == 2
+            cellmap['client'] == 13
         	cellmap['reason'] == 'Bingo'
-        	cellmap['date'] == '2017-01-05'
+        	cellmap['date'] == '2018-01-05'
     } // end of test
     
     
@@ -67,9 +97,11 @@ class CellTest extends Specification {
     	    binding.setVariable("date", dat);
         	binding.setVariable("type", "C");
         	binding.setVariable("amount", -1.23);
-        	binding.setVariable("number", 64);
+            binding.setVariable("ccy", 3);
+        	binding.setVariable("client", 64);
         	binding.setVariable("flag", true);
         	binding.setVariable("reason", "Reason for deed");
+            binding.setVariable("name", "Jim");
 			Cell obj2 = new Cell();
 			
         when:
@@ -79,21 +111,25 @@ class CellTest extends Specification {
 
         then:
         	//obj2.id == 0 -now not Zero since H2Table had max() method added
-        	obj2.date.toString() == 'Mon Dec 25 00:00:00 CET 2017'
+        	obj2.date.toString().startsWith('Mon Dec 25 00:00:00 ') == true
         	obj2.type == 'C'
         	obj2.amount == -1.23
-        	obj2.number == 64
+            obj2.ccy == 3
+        	obj2.client == 64
         	obj2.flag == true;
         	obj2.reason == 'Reason for deed'
+            obj2.name == 'Jim'
         	
         	cellmap instanceof Map
 			//cellmap['id'] == 0
-			cellmap['flag'] == true
-			cellmap['type'] == 'C'
+            cellmap['date'] == '2017-12-25'
+            cellmap['type'] == 'C'
 			cellmap['amount'] == -1.23
+            cellmap['ccy'] == 3
+            cellmap['client'] == 64
+            cellmap['flag'] == true
         	cellmap['reason'] == 'Reason for deed'
-			cellmap['number'] == 64
-        	cellmap['date'] == '2017-12-25'
+            cellmap['name'] == 'Jim'
     } // end of test
 
     
@@ -105,18 +141,20 @@ class CellTest extends Specification {
     	    char ch= 'C'
 			
         when:
-        	obj3 = new Cell(17,dat,ch,12.34,77499,yn, "Hi kids");
+        	obj3 = new Cell(17,dat,ch,12.34,2, 77499,yn, "Hi kids", "Martha");
 	        println "Cell3 = ${obj3.toString()}"
 
         then:
         	//thrown groovy.lang.GroovyRuntimeException
-        	obj3.id == 17
-        	obj3.date.toString() == 'Mon Dec 25 00:00:00 CET 2017'
-        	obj3.type == 'C'
+        	obj3.id     == 17
+        	obj3.date.toString().startsWith('Mon Dec 25 00:00:00 ') == true
+        	obj3.type   == 'C'
         	obj3.amount == 12.34
-        	obj3.number == 77499
-        	obj3.flag == true;
+            obj3.ccy    == 2
+        	obj3.client == 77499
+        	obj3.flag   == true;
         	obj3.reason == 'Hi kids'
+            obj3.name == 'Martha'
     } // end of test
     
     
@@ -132,10 +170,11 @@ class CellTest extends Specification {
 
         then:
         	obj4.id == 27
-        	obj4.date.toString() == 'Mon Dec 25 00:00:00 CET 2017'
+        	obj4.date.toString().startsWith('Mon Dec 25 00:00:00 ') == true
         	obj4.type == 'C'
         	obj4.amount == 12.34
-        	obj4.number == 0
+            obj4.ccy == 1
+        	obj4.client == 0
         	obj4.flag == false;
         	obj4.reason == 'unknown'
 			
@@ -164,6 +203,21 @@ class CellTest extends Specification {
 			
             // Alternative syntax: def ex = thrown(InvalidDeviceException)
             ex.message == 'Could not find matching constructor for: com.jim.toolkit.Cell(groovy.lang.Binding)'            
+    } // end of test
+    
+    
+    def "Confirm Cell.toOutput method returns proper values for this"() {
+        setup:
+            Date dat = Date.parse('yyy-MM-dd','2018-01-01');
+            Cell obj = new Cell([date:dat, type:'B', amount:-123.45, ccy:3, client:123, flag:true, reason:'Start here', name:'Fred Mertz'])
+        
+        when:
+            def output = obj.toOutput()
+            def objstring = obj.toString()
+
+        then:
+            output == /0; "2018-01-01"; "B"; -123.45; 3; 123; "true"; "Start here"; "Fred Mertz"; /
+            objstring == /0 2018-01-01 B -123.45 3 123 true "Start here" "Fred Mertz"/
     } // end of test
     
     

@@ -7,7 +7,12 @@ import java.text.SimpleDateFormat
 import com.jim.toolkit.Cell;
 import com.jim.toolkit.Cells;
 import com.jim.toolkit.database.LoaderSupport;
+
+import groovy.sql.*
+
 //import static java.util.Calendar.*
+import groovy.util.logging.Slf4j;
+import org.slf4j.*
 
 /*
  * Copyright 2017 the original author or authors.
@@ -31,6 +36,7 @@ import com.jim.toolkit.database.LoaderSupport;
  * This is code with all bits needed to ask H2 database to insert and drop data rows for a given table
  *
  */ 
+ @Slf4j
  @Canonical 
  public class H2RowSupport
  { 
@@ -49,6 +55,11 @@ import com.jim.toolkit.database.LoaderSupport;
     */  
     LoaderSupport ls = new LoaderSupport();
 
+   /** 
+    * Variable set to true if logging printouts are needed or false if not
+    */  
+    Boolean logFlag = false;
+
 
    /** 
     * Default Constructor 
@@ -59,7 +70,24 @@ import com.jim.toolkit.database.LoaderSupport;
     */     
     public H2RowSupport()
     {
-        //say "... running H2RowSupport constructor written by Jim Northrop";
+        say "... running H2RowSupport constructor written by Jim Northrop";
+        h2 = new H2TableSupport();
+        h2.create();
+    } // end of constructor
+
+
+   /** 
+    * Non-Default Constructor 
+    *
+    * creates an SQL handle to default 'core' table
+    * 
+    * @param ok holds boolean to populate the logFlag
+    * @return H2TableSupport object
+    */     
+    public H2RowSupport(boolean ok)
+    {
+        logFlag = ok;
+        say "... running H2RowSupport constructor written by Jim Northrop";
         h2 = new H2TableSupport();
         h2.create();
     } // end of constructor
@@ -68,30 +96,37 @@ import com.jim.toolkit.database.LoaderSupport;
    /** 
     * Method to add one row using a Map of key:values to in-use H2 database table.
     *
-    * Keys for this Map are id, date, type, amount, number, flag, reason
+    * Keys for this Map are id, date, type, amount, ccy, client, flag, reason
     * missing or mis-cast values will be changed into correct types.
     * 
     * @param m holds Map of key / values used to populate the reason for this row
-    * @return 
+    * @return yn boolean result of true if Map created a row but false if SQL failure
     */     
-    public add(Map m)
+    public boolean add(Map m)
     {
-        print "... Map m ="
+        say "... Map m ="
 
         if ( m.id == null ) { m.id = 0; }
         Integer mid = (m.id instanceof Integer ) ? m.id : m.id as Integer;
         mid = setId(mid)
 
         if ( m.date == null ) { m.date = new Date(); }
-        Date md = (m.date instanceof String ) ? Date.parse('yyy-MM-dd',m.date)  : m.date ;
+        if (m.date instanceof String == true) { println "... add m.date is String "} else{ println "... add m.date is NOT String " }
+        Date md = (m.date instanceof String ) ? Date.parse('yyyy-MM-dd',m.date)  : m.date ;
+
+println "... add() Date m.date=|${m.date}|"
 
         Character mt = m.type ?: "x";
         
         if ( m.amount == null ) { m.amount = 0.00; }
         BigDecimal mamt = (m.amount instanceof BigDecimal ) ? m.amount : m.amount as BigDecimal;
 
-        if ( m.number == null ) { m.number = 0; }
-        Integer mnumber = (m.number instanceof Integer ) ? m.number : m.number as Integer;
+        if ( m.ccy == null ) { m.ccy = 1; }
+        Integer mccy = (m.ccy instanceof Integer ) ? m.ccy : m.ccy as Integer;
+
+        // client number
+        if ( m.client == null ) { m.client = 0; }
+        Integer mclient = (m.client instanceof Integer ) ? m.client : m.client as Integer;
 
         if ( m.flag == null ) { m.flag = false; }
         Boolean mflg = (m.flag instanceof Boolean ) ? m.flag : false;
@@ -99,8 +134,11 @@ import com.jim.toolkit.database.LoaderSupport;
         if ( m.reason == null ) { m.reason = ""; }
         String mreason = (m.reason instanceof String ) ? m.reason : m.reason as String;
 
-        boolean yn = add(mid, md, mt, mamt, mnumber, mflg, mreason);
-        //println "... add Map gave :"+yn;
+        if ( m.name == null ) { m.name = ""; }
+        String mname = (m.name instanceof String ) ? m.name : m.name as String;
+
+        boolean yn = add(mid, md, mt, mamt, mccy, mclient, mflg, mreason, mname);
+        say "... add Map gave :"+yn;
     }  // end of method
 
 
@@ -108,11 +146,11 @@ import com.jim.toolkit.database.LoaderSupport;
     * Method to add one row using a Cell of values to in-use H2 database table.
     *
     * @param m holds Cell of values used to populate the reason for this row
-    * @return 
+    * @return yn boolean result of true if Map created a row but false if SQL failure
     */     
-    public add(Cell m)
+    public boolean add(Cell m)
     {
-        print "... Cell m ="
+        say "... Cell m ="+m.toString();
 
         if ( m.id == null ) { m.id = 0; }
         Integer mid = (m.id instanceof Integer ) ? m.id : m.id as Integer;
@@ -126,8 +164,11 @@ import com.jim.toolkit.database.LoaderSupport;
         if ( m.amount == null ) { m.amount = 0.00; }
         BigDecimal mamt = (m.amount instanceof BigDecimal ) ? m.amount : m.amount as BigDecimal;
 
-        if ( m.number == null ) { m.number = 0; }
-        Integer mnumber = (m.number instanceof Integer ) ? m.number : m.number as Integer;
+        if ( m.ccy == null ) { m.ccy = 1; }
+        //  String mccy = (m.ccy instanceof Integer ) ? m.ccy : m.ccy as Integer;
+
+        if ( m.client == null ) { m.client = 0; }
+        Integer mclient = (m.client instanceof Integer ) ? m.client : m.client as Integer;
 
         if ( m.flag == null ) { m.flag = false; }
         Boolean mflg = (m.flag instanceof Boolean ) ? m.flag : false;
@@ -135,8 +176,11 @@ import com.jim.toolkit.database.LoaderSupport;
         if ( m.reason == null ) { m.reason = ""; }
         String mtxt = (m.reason instanceof String ) ? m.reason : m.reason as String;
 
-        boolean yn = add(mid, md, mt, mamt, mnumber, mflg, mtxt);
-        println "... add Cell gave :"+yn;
+        if ( m.name == null ) { m.name = ""; }
+        String mname = (m.name instanceof String ) ? m.name : m.name as String;
+
+        boolean yn = add(mid, md, mt, mamt, m.ccy, mclient, mflg, mtxt, mname);
+        say "... add Cell gave :"+yn;
 
         return yn;
     }  // end of method
@@ -145,24 +189,25 @@ import com.jim.toolkit.database.LoaderSupport;
    /** 
     * Method to add one row to in-use H2 database table.
     * 1; "2013-03-02"; "B"; 121.44; 2; "Pension"; "true";
-    * @param id holds integer to uniquely identify this row - maybe overwritten by setId() method
+    * @param id   holds integer to uniquely identify this row - maybe overwritten by setId() method
     * @param rowdate holds Date() object to populate the action date for this row
-    * @param ty holds a single character to populate the business type for this row
-    * @param amt holds BigDecimal value to populate the money for this row
-    * @param num holds integer value of client or zero
-    * @param flg holds boolean yes/no for currency
-    * @param txt holds string used to populate the reason for this row
-    * @return 
+    * @param ty   holds a single character to populate the business type for this row
+    * @param amt  holds BigDecimal value to populate the money for this row
+    * @param ccy holds integer value 1,2 or 3 for ISO currency code, where 1=978 for 'EUR' or 2=826 for 'GBP'
+    * @param num  holds integer value of client or zero
+    * @param flg  holds boolean yes/no for currency
+    * @param txt  holds string used to populate the reason for this row
+    * @return ok boolean result of true if Map created a row but false if SQL failure
     */     
-    public boolean add(Integer id, Date rowdate, Character ty, BigDecimal amt, Integer num, Boolean flg, String txt)
+    public boolean add(Integer id, Date rowdate, Character ty, BigDecimal amt, Integer ccy, Integer num, Boolean flg, String txt, String name)
     {
         boolean ok = true
         int mid = setId(id);
 
     	try
     	{
-    		String stmt = """INSERT INTO ${h2.dbtable} values(:id, :date, :type, :amount, :number, :flag, :reason)"""
-			h2.sql.execute(stmt, [id:mid, date:rowdate, type:ty, amount:amt, number:num, flag:flg, reason: txt])
+    		String stmt = """INSERT INTO ${h2.dbtable} values(:id, :date, :type, :amount, :ccy, :client, :flag, :reason, :name)"""
+			h2.sql.execute(stmt, [id:mid, date:rowdate, type:ty, amount:amt, ccy:ccy, client:num, flag:flg, reason: txt, name:name])
 			say "... added row to H2 database table ${h2.dbtable} ok"
 		}
 		catch (Exception x)
@@ -189,20 +234,22 @@ import com.jim.toolkit.database.LoaderSupport;
     * @param ch holds string used to populate the reason for this row
     * @param amt holds BigDecimal value to populate the money for this row
     * @param txt holds string used to populate the reason for this row
-    * @return 
+    * @return yn boolean result of true if Map created a row but false if SQL failure
     */     
-    public add(Date rowdate, Character ch, BigDecimal amt, String txt)
+    public boolean add(Date rowdate, Character ch, BigDecimal amt, String txt)
     {
     	try
     	{
             int mid = setId(id);
-            String stmt = """INSERT INTO ${h2.dbtable} values(:id, :date, :type, :amount, :number, :flag, :reason)"""
-            h2.sql.execute(stmt, [id:mid, date:rowdate, type:ch, amount:amt, number:0, flag:false , reason: txt])
+            String stmt = """INSERT INTO ${h2.dbtable} values(:id, :date, :type, :amount, :ccy, :client, :flag, :reason, :name)"""
+            h2.sql.execute(stmt, [id:mid, date:rowdate, type:ch, amount:amt, ccy:1, client:0, flag:false , reason: txt, name:"" ])
             say "... added row to H2 database table ${h2.dbtable} ok"
+            return true
         }
         catch (Exception x)
         {
             say "${h2.dbtable} table could not add row problem:"+x.message;
+            return false;
         }
     }  // end of method
 
@@ -211,9 +258,9 @@ import com.jim.toolkit.database.LoaderSupport;
     * Method to remove a row of in-use H2 database table.
     * 
     * @param which holds int value of the ID of the row to remove
-    * @return 
+    * @return yn boolean result of true if row was deleted but false if SQL failure
     */     
-    public remove(int which)
+    public boolean remove(int which)
     {
     	try
     	{
@@ -222,10 +269,12 @@ import com.jim.toolkit.database.LoaderSupport;
 			h2.sql.execute(stmt)
 			h2.sql.execute("COMMIT");
 			say "... removed row with ID of ${which} from H2 database table ${h2.dbtable} ok"
+            return true
 		}
 		catch (Exception x)
 		{
 			say "${h2.dbtable} table could not remove row with ID of ${which} due to problem:"+x.message;
+            return false
 		}
     }  // end of method
 
@@ -234,22 +283,53 @@ import com.jim.toolkit.database.LoaderSupport;
     * Method to update flag a row of in-use H2 database table.
     * 
     * @param which holds int value of the ID of the row to updated
-    * @return 
+    * @return yn boolean result of true if row was updated but false if SQL failure
     */     
-    public update(int which)
+    public update(Map m)
     {
+        Integer mid = m.id;
+
+        if ( m.date == null ) { m.date = new Date(); }
+        if (m.date instanceof String == true) { println "... update m.date is String "} else{ println "... update m.date is NOT String " }
+        Date md = (m.date instanceof String ) ? Date.parse('yyy-MM-dd',m.date)  : m.date ;
+
+println "... update() Date m.date=|${m.date}|"
+
+        Character mt = m.type ?: "x";
+        
+        if ( m.amount == null ) { m.amount = 0.00; }
+        BigDecimal mamt = (m.amount instanceof BigDecimal ) ? m.amount : m.amount as BigDecimal;
+
+        if ( m.ccy == null ) { m.ccy = 1; }
+        Integer mccy = (m.ccy instanceof Integer ) ? m.ccy : m.ccy as Integer;
+
+        // client number
+        if ( m.client == null ) { m.client = 0; }
+        Integer mclient = (m.client instanceof Integer ) ? m.client : m.client as Integer;
+
+        if ( m.flag == null ) { m.flag = false; }
+        Boolean mflg = (m.flag instanceof Boolean ) ? m.flag : false;
+
+        if ( m.reason == null ) { m.reason = ""; }
+        String mreason = (m.reason instanceof String ) ? m.reason : m.reason as String;
+
+        if ( m.name == null ) { m.name = ""; }
+        String mname = (m.name instanceof String ) ? m.name : m.name as String;
+
     	try
     	{
     		//String stmt = "UPDATE "+h2.dbtable+" SET id=12 WHERE AMOUNT = 150.05 "
-            String stmt = "UPDATE "+h2.dbtable+" SET flag='true' WHERE ID = "+which+" AND flag='false' "
+            String stmt = """UPDATE core SET DATE="${md}", TYPE='${mt}', AMOUNT='${mamt}', CCY=${mccy}, FLAG=${mflg}, CLIENT=${mclient}, NAME='${mname}', REASON='${mreason}' WHERE ID = """+mid;
     		say stmt;
 			h2.sql.execute(stmt)
 			h2.sql.execute("COMMIT");
-			say "... updated row with ID of ${which} from H2 database table ${h2.dbtable} ok"
+			say "... updated row with ID of ${mid} from H2 database table ${h2.dbtable} ok"
+            return true
 		}
 		catch (Exception x)
 		{
-			say "${h2.dbtable} table could not update row with ID of ${which} due to problem:"+x.message;
+			say "core table could not update row with ID of ${mid} due to problem:"+x.message;
+            return false
 		}
     }  // end of method
 
@@ -264,7 +344,7 @@ import com.jim.toolkit.database.LoaderSupport;
     public int setId(myId)
     {
         // don't use H2 as it maybe pointing at a diff.table than 'core'
-        H2TableSupport ts = new H2TableSupport()
+        H2TableMethods ts = new H2TableMethods()
         int max = ts.max();
 
         if (myId==0 || !(myId > max) )
@@ -294,32 +374,67 @@ import com.jim.toolkit.database.LoaderSupport;
 		List columnNames = [];
 		List columnTypes = []
 		Cell s = new Cell();
-
-		//def rowCount = h2.sql.firstRow('SELECT COUNT(*) as num FROM '+h2.dbtable).num;
-		//println "... ${h2.dbtable} row count:"+rowCount;
         
         String stmt = "SELECT * FROM "+h2.dbtable+" WHERE ID = "+myId+"; "
 		h2.sql.eachRow(stmt) { resultSet ->
 				String temp = resultSet.toString()
-    			println "... row :"+temp;
+    			say "... row :"+temp;
 
-    			// ... row :[ID:2, DATE:2017-12-17, TYPE:B, AMOUNT:99.00, NUMBER:12, FLAG:false, REASON:Eve's pension]
+    			// ... row :[ID:2, DATE:2017-12-17, TYPE:B, AMOUNT:99.00, CCY:3, client:12, FLAG:false, REASON:Eve's pension]
     			s = ls.reMap(temp);
     			payload.add(s);
-    			println "; Cell s="+s.toString();
+    			say "; Cell s="+s.toString();
 
 				def md = resultSet.getMetaData()
 				columnNames = (1..md.columnCount).collect{ md.getColumnName(it) }
-				columnNames.each{e-> println "... column name:"+e; }
+				columnNames.each{e-> say "... column name:"+e; }
 				columnTypes = (1..md.columnCount).collect{ md.getColumnTypeName(it) }
-				columnTypes.each{e-> println "... column type:"+e; }
+				columnTypes.each{e-> say "... column type:"+e; }
 		} //end of each
 
-		println "--> s="+s;
+		say "--> s="+s;
         return payload; 
     } // end of method
 
 
+   /** 
+    * Method to find out if we have core row(s) for a specific internal Id variable 
+    *
+    * @param myId holds int value of the ID of the proposed row to read
+    * @return boolean true if rows exist for this rowId in the 'core' H2 table.
+    */     
+    public boolean hasId(myId)
+    {
+        boolean payload = false;        
+        String stmt = "SELECT * FROM core WHERE ID = "+myId+"; "
+        h2.sql.eachRow(stmt) { resultSet ->
+            payload = true;
+        } // end of each
+
+        return payload; 
+    } // end of method
+
+
+   /** 
+    * Method to find out if we have core row(s) for a specific internal Id variable 
+    *
+    * @param myId holds int value of the ID of the proposed row to read
+    * @return content of first row if row exists for this rowId in the 'core' H2 table.
+    */     
+    public getIdRow(myId)
+    {
+        def payload = null;        
+        String stmt = "SELECT * FROM core WHERE ID = "+myId+"; "
+
+        def row = h2.sql.firstRow(stmt)
+        payload = row;
+/*
+        h2.sql.eachRow(stmt) { resultSet ->
+            payload = resultSet.get;
+        } // end of each
+*/
+        return payload; 
+    } // end of method
 
    /** 
     * Method to display internal variables.
@@ -332,6 +447,7 @@ import com.jim.toolkit.database.LoaderSupport;
 java.io.File.separator=${java.io.File.separator}
 H2=${h2.toString()}
 LoaderSupport=${ls.toString()}
+logFlag=${logFlag}
 """
     }  // end of string
 
@@ -344,7 +460,10 @@ LoaderSupport=${ls.toString()}
     */     
     public void say(txt)
     {
-        println txt;
+        if (logFlag)
+        {
+            log.info txt;
+        }
     }  // end of method
 
 
@@ -359,12 +478,18 @@ LoaderSupport=${ls.toString()}
     {
         println "--- starting H2RowSupport ---"
 
-        H2RowSupport obj = new H2RowSupport();
+        H2RowSupport obj = new H2RowSupport(true);
         //println "... updating flag of id 1:"+obj.update(0);
         println " ";
         
         def rower = obj.getId(1);
         println "... Found this row for id one :"+rower;
+
+        Map ma = ['id':10, 'date':'2018-12-25', 'amount':-123.45,'flag':false,'client':88,'name':'JIm Name',type:'A', 'reason':'Be reasonable', 'ccy':2]
+        def ok = obj.update(ma);
+        println "... update row for id 10 :"+ok;
+        rower = obj.getId(10);
+        println "... Found this row for id ten :"+rower;
 
         println "--- the end of H2RowSupport ---"
     } // end of main

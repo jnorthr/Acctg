@@ -6,6 +6,8 @@ import java.util.Date;
 import java.text.SimpleDateFormat
 import static java.util.Calendar.*
  
+import groovy.util.logging.Slf4j;
+import org.slf4j.*
 /*
  * Copyright 2017 the original author or authors.
  *
@@ -28,6 +30,7 @@ import static java.util.Calendar.*
  * This is code with all bits needed to calculate and format date strings as dd/mm/ccyy or yyyy-mm-dd mostly ISO date formatting
  *
  */ 
+ @Slf4j
  @Canonical 
  public class DateMath
  {
@@ -61,6 +64,10 @@ import static java.util.Calendar.*
     */
     Date todayDate = new Date();
 
+   /** 
+    * Variable set to true if logging printouts are needed or false if not
+    */  
+    Boolean logFlag = false;
 
    /** 
     * Default Constructor 
@@ -70,6 +77,21 @@ import static java.util.Calendar.*
     public DateMath()
     {
         say "running DateMath constructor written by Jim Northrop"
+        setup();
+    } // end of constructor
+
+
+   /** 
+    * Non-Default Constructor 
+    * 
+    * @param ok - boolean to set logFlag to produce log file output
+    * @return DateMath object
+    */     
+    public DateMath(boolean ok)
+    {
+        logFlag = ok;
+        say "running DateMath constructor written by Jim Northrop"
+        setup();
     } // end of constructor
 
 
@@ -83,6 +105,9 @@ import static java.util.Calendar.*
         return """classname=${classname}
 historyDate=${historyDate}
 futureDate=${futureDate}
+dateFormat=${dateFormat.toString()}
+Calendar=${cal}
+todayDate=${todayDate}
 """
     }  // end of string
 
@@ -95,41 +120,44 @@ futureDate=${futureDate}
     */     
     public boolean check(txt)
     {
-        say "... check(${txt})"
-
         cal = Calendar.getInstance();
-        todayDate = new Date();
-
         boolean ok = false;
         
         try {
             // parse in expected format ccyy-mm-dd
             cal.setTime(dateFormat.parse(txt));
-            println "... check Date todayDate=|${todayDate}|"
+            say "... check(${txt}) date can be converted into a Date() object using CCYY-MM-DD format"
+            ok = true;
         } 
         catch (Exception ex) 
         {
-            println "... check error:"+ex.message;
+            say "... check error:"+ex.message;
         }
 
+        return ok;
+    }  // end of method
+
+
+   /** 
+    * Method to setup two dates, 1)a future date seven days ahead of today and a history date seven days behind today.
+    * 
+    * @return Date() object with value of today.
+    */     
+    public Date setup()
+    {
+        todayDate = new Date();
         historyDate = todayDate - 7;
         futureDate = todayDate + 7;
         
         //  Date has before and after methods and can be compared to each other as follows:
         if(todayDate.after(historyDate) && todayDate.before(futureDate)) 
         {
-            // In between
-            ok = true;
             say "... todayDate=|${todayDate}|"
-            say "... historyDate=|${historyDate}|"
-            say "... futureDate=|${futureDate}|"
+            say "... historyDate=|${historyDate}| was seven days ago"
+            say "... futureDate=|${futureDate}| seven days ahead"
         } // end of if
-        else
-        {
-            ok = false;
-        } // end else
-        
-        return ok;
+
+        return todayDate;
     }  // end of method
 
 
@@ -151,11 +179,11 @@ futureDate=${futureDate}
             cal.setTime(dateFormat.parse(givenDate));
             cal.add(Calendar.DATE, noOfDays);
             now = cal.getTime();
-            println "... getNextDate Date now=|${now}|"
+            say "... getNextDate(String ${givenDate},int ${noOfDays}) has date now=|${now}|"
         } 
         catch (Exception ex) 
         {
-            println "... getNextDate error:"+ex.message;
+            say "... getNextDate error:"+ex.message;
         }
 
         return now;
@@ -170,7 +198,7 @@ futureDate=${futureDate}
     */     
     public void say(txt)
     {
-        println txt;
+        if (logFlag) { log.info txt; }
     }  // end of method
 
 
@@ -183,18 +211,10 @@ futureDate=${futureDate}
     */     
     public static void main(String[] args)
     {
-        println "--- starting DateMath ---"
-        println "... to do math on a date like dd/mm/yyyy string"
+        println "--- Starting DateMath ---"
+        println "... To do math on a date like dd/mm/yyyy string"
 
-        DateMath obj = new DateMath();
-        DateSupport ds = new DateSupport();
-
-        println "... today is "+ds.datex;
-        if (ds.isDate(ds.datex))
-        {
-            println "getDate()="+ds.getDate();
-        }
-
+        DateMath obj = new DateMath(true);
         println ""
         println "\n... doing check() logic="+obj.check("2017-12-13");
         println "\n... doing getNextDate(2017-12-31) minus 7 days so result =|${obj.getNextDate("2017-12-31",-7)}|";
@@ -203,7 +223,6 @@ futureDate=${futureDate}
         println "\n... Date d =|${d}|";
         
         println "\nDateMath="+obj.toString();
-        println "\nDateSupport="+ds.toString();
 
         println "--- the end of DateSupport ---"
     } // end of main

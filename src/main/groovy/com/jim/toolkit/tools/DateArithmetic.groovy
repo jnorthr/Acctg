@@ -4,6 +4,9 @@ import groovy.transform.*;
 import java.util.Date;
 import java.text.SimpleDateFormat
 import static java.util.Calendar.*
+
+import groovy.util.logging.Slf4j;
+import org.slf4j.*
 /*
  * Copyright 2017 the original author or authors.
  *
@@ -25,7 +28,12 @@ import static java.util.Calendar.*
  *
  * This is code with all bits needed to validate and increment date strings, usually as dd/mm/ccyy or yyyy-mm-dd mostly ISO date formatting
  *
+ * Strange findings: Beware: Month is zero-relative so January is held in Date object as zero;
+ * when adding or subtracting to dat[MONTH] MUST use += syntax
+ *
+ * Saturday is day 7 with Sunday as day 1 for day of week names.
  */ 
+ @Slf4j
  @Canonical 
  public class DateArithmetic
  {
@@ -40,6 +48,34 @@ import static java.util.Calendar.*
 	Map down = [1:'Sunday',2:'Monday',3:'Tuesday',4:'Wednesday',5:'Thursday',6:'Friday',7:'Saturday']
 
    /** 
+    * Variable set to true if logging printouts are needed or false if not
+    */  
+    Boolean logFlag = false;
+
+
+   /** 
+    * Default Constructor 
+    * 
+    * @return DateArithmetic object
+    */     
+    public DateArithmetic()
+    {
+        say "running DateArithmetic constructor written by Jim Northrop"
+    } // end of constructor
+
+   /** 
+    * Non-Default Constructor 
+    * 
+    * @param ok - a boolean to set the logFlag to print output log file
+    * @return DateArithmetic object
+    */     
+    public DateArithmetic(boolean ok)
+    {
+        logFlag = ok;
+        say "running DateArithmetic constructor written by Jim Northrop"
+    } // end of constructor
+
+   /** 
     * Method to increment then return a Date() object by a number of months.
     * 
     * day is base-zero relative; increment date by one day, days beyond month-maximum causes month&year roll-over
@@ -51,9 +87,11 @@ import static java.util.Calendar.*
     */     
     public Date bumpMonth(Date dt, int months)
     {
-        def tempDate = dt;
+        Date tempDate = dt;
+        // strange results if you do NOT use += syntax to add
         tempDate[MONTH] += months; 
         return tempDate;
+        //return dt[MONTH] + months; 
     } // end of bumpMonth()
 
 
@@ -68,9 +106,7 @@ import static java.util.Calendar.*
     */     
     public Date bumpDays(Date dt, int days)
     {
-        def tempDate = dt;
-        tempDate[DATE] += days; // DAY is base-zero relative
-        return tempDate;
+        return dt + days;
     } // end of bumpDays()
 
 
@@ -84,9 +120,7 @@ import static java.util.Calendar.*
     */     
     public Date bumpDay(Date dt)
     {
-        def tempDate = dt;
-        tempDate[DATE] += 1; // DAY is base-zero relative
-        return tempDate;
+        return dt + 1;
     } // end of bumpDay()
 
 
@@ -136,6 +170,20 @@ import static java.util.Calendar.*
 """
     }  // end of string
 
+   /** 
+    * Method to print audit log.
+    * 
+    * @param the text to be said
+    * @return void
+    */     
+    public void say(txt)
+    {
+        if (logFlag)
+        {
+            log.info txt;            
+        }
+    }  // end of method
+
 
    // ======================================
    /** 
@@ -148,7 +196,7 @@ import static java.util.Calendar.*
     {
         println "--- starting DateArithmetic ---"
 
-        DateArithmetic obj = new DateArithmetic();
+        DateArithmetic obj = new DateArithmetic(true);
         
         //def tokens = datex.trim().split('/')
         def otherDate = new Date();
@@ -165,53 +213,54 @@ import static java.util.Calendar.*
         otherDate[MONTH] += 11;
         println "... otherDate MONTH+=11 :|${otherDate}|\n"
 
-        println "... otherDate plus 1 MONTHs using obj.bumpMonth() method:"+obj.bumpMonth(otherDate,1);
-        println "... otherDate plus 1 MONTHs using obj.bumpMonth() method:"+obj.bumpMonth(otherDate,1);
+        otherDate = obj.bumpMonth(otherDate,1);
+        println "... otherDate plus 1 MONTHs using obj.bumpMonth() method:"+otherDate;
         println ""
 
-        println "... otherDate plus 1 days using obj.bumpDays() method:"+obj.bumpDays(otherDate,1);
+        otherDate = obj.bumpDay(otherDate);
+        println "... otherDate plus 1 days using obj.bumpDays() method:"+otherDate;
         
-        // day of week ?
-        //Calendar c = Calendar.getInstance();
-        //c.setTime(otherDate);
-        //int dayOfWeek = c.get(Calendar.DAY_OF_WEEK);
-        println "\n... dayOfWeek="+obj.getDayOfWeek(otherDate)        //dayOfWeek;
+        println "\n... dayOfWeek="+obj.getDayOfWeek(otherDate)  
         println "... dayOfWeekName="+obj.getDayOfWeekName(otherDate)
         
-        println "... otherDate plus 1 days using obj.bumpDays() method:"+obj.bumpDays(otherDate,1);        
+        otherDate = obj.bumpDay(otherDate);
+        println "... otherDate plus 1 days using obj.bumpDays() method:"+otherDate;        
         println "... dow=|${obj.getDayOfWeek(otherDate)}| dayOfWeek="+obj.getDayOfWeek(otherDate);
         println "... dayOfWeekName="+obj.getDayOfWeekName(otherDate)
         
-        println "... otherDate plus 1 days using obj.bumpDays() method:"+obj.bumpDays(otherDate,1);        
+        otherDate = obj.bumpDays(otherDate,1);
+        println "... otherDate plus 1 days using obj.bumpDays() method:"+otherDate;        
         println "... dayOfWeek="+obj.getDayOfWeek(otherDate); 
         println "... dayOfWeekName="+obj.getDayOfWeekName(otherDate)
-        
-        
-        println "... otherDate plus 1 days using obj.bumpDays() method:"+obj.bumpDays(otherDate,1);        
-        println "... dayOfWeek="+obj.getDayOfWeek(otherDate); 
-        println "... dayOfWeekName="+obj.getDayOfWeekName(otherDate)
-        
-        
-        println "... otherDate plus 1 days using obj.bumpDays() method:"+obj.bumpDays(otherDate,1);        
-        println "... dayOfWeek="+obj.getDayOfWeek(otherDate); 
-        println "... dayOfWeekName="+obj.getDayOfWeekName(otherDate)
-        
-        
-        println "... otherDate plus 0 days using obj.bumpDays() method:"+obj.bumpDays(otherDate,0);        
+                
+        otherDate = obj.bumpDays(otherDate,0);        
+        println "... otherDate plus 0 days using obj.bumpDays() method:"+otherDate;        
         println "... dayOfWeek="+obj.getDayOfWeek(otherDate);
         println "... dayOfWeekName="+obj.getDayOfWeekName(otherDate)
         println "" 
 
+        otherDate = new Date();
+
         3.times{
-            println "\n... otherDate plus 1 days using obj.bumpDays() method:"+obj.bumpDay(otherDate);        
+            println "\n... otherDate=|${otherDate}| plus 1 days using obj.bumpDay() method:"+otherDate;        
             println "... dayOfWeek="+obj.getDayOfWeek(otherDate); 
 	        println "... dayOfWeekName="+obj.getDayOfWeekName(otherDate)
+            otherDate = obj.bumpDay(otherDate)
         } // end of times
-        
-        println "---- the end ---"
-        
 
+        Date date = Date.parse('yyy-MM-dd','2018-01-01');
+        DateArithmetic da = new DateArithmetic(true);
+        Date dat = da.bumpDays(date, 7);
+        def yr = dat[Calendar.YEAR]
+        def mo = dat[Calendar.MONTH]
+        def day = dat[Calendar.DATE]
+        println "... test 1b:  date=|${date}| dat[YEAR]=|${yr}|  dat[MONTH]=|${mo}|  dat[DATE]=|${day}| dat=|${dat}|";
+        
         println "--- the end of DateArithmetic ---"
     } // end of main
 
 } // end of class        
+        // day of week ?
+        //Calendar c = Calendar.getInstance();
+        //c.setTime(otherDate);
+        //int dayOfWeek = c.get(Calendar.DAY_OF_WEEK);

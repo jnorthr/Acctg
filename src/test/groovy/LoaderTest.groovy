@@ -27,7 +27,7 @@ class LoaderTest extends Specification {
     */
         setup:
             Loader obj = new Loader();
-            String semicolonsample = "4; 2017-01-19; C; 25.78; 10; false; Burgers R Us";
+            String semicolonsample = "4; 2017-01-19; C; 25.78; 10; false; Burgers R Us|My name is Fred;";
         
         when:
             def result = obj.semis(semicolonsample)
@@ -37,7 +37,7 @@ class LoaderTest extends Specification {
             result == 7
             obj.verified == false        
             obj.withId == false
-            obj.datex.toString() == "Sat Nov 25 00:00:00 CET 2017"
+            obj.datex.toString().startsWith("Sat Nov 25 00:00:00 ") == true
             obj.tokens.size() == 7
             obj.tokens[0] == "4"
             obj.tokens[1].trim() == "2017-01-19"
@@ -45,14 +45,14 @@ class LoaderTest extends Specification {
             obj.tokens[3].trim() == "25.78"
             obj.tokens[4].trim() == "10"
             obj.tokens[5].trim() == "false"
-            obj.tokens[6].trim() == "Burgers R Us"
+            obj.tokens[6].trim() == "Burgers R Us|My name is Fred"
     } // end of method
 
 
     def "how many ; in semi-colon sample 2 - a test string full of semi-colons including trailing ;"() {
         setup:
             Loader obj = new Loader();
-            String semicolonsample2 = "4; 2017-01-19; C; 25.78; 10; false; Burgers R Us Again;";
+            String semicolonsample2 = "4; 2017-01-19; C; 25.78; 10; false; Burgers R Us Again|My name is Fred;";
         
         when:
             def result = obj.semis(semicolonsample2);
@@ -95,41 +95,41 @@ class LoaderTest extends Specification {
     def "Test 1 string full of tokens divided by blanks and no optional Id number to start"() {
         setup:
             Loader obj = new Loader();
-            String spacesample1 = "2017-01-21 A -1.23 64 true reason for deed";
+            String spacesample1 = "2017-01-21 A -1.23 64 true reason for deed  |My name is Fred";
             
         when:
             def result = obj.blanks(spacesample1);
             println "... how many tokens in [${spacesample1}] ? "+obj.blanks(spacesample1);
 
         then:
-            result == 8
+            result == 12
     } // end of method
 
     def "Test 2 string full of tokens divided by blanks and an optional Id number to start"() {
         setup:
             Loader obj = new Loader();
-            String spacesample2 = "78 2017-01-21 A -1.23 64 true Haircuts";
+            String spacesample2 = "78 2017-01-21 A -1.23 64 true Haircuts |My name is Fred";
             
         when:
             def result = obj.blanks(spacesample2);
             println "... how many tokens in [${spacesample2}] ? "+obj.blanks(spacesample2);
 
         then:
-            result == 7
+            result == 11
     } // end of method
 
 	
     def "Test 3 string full of tokens divided by blanks and an optional Id number to start & multi-token reason"() {
         setup:
             Loader obj = new Loader();
-            String spacesample3 = "78 2017-01-21 A -1.23 6 false Haircuts Are Us";
+            String spacesample3 = "78 2017-01-21 A -1.23 6 false Haircuts Are Us    | 'My name is Fred' ";
             
         when:
             def result = obj.blanks(spacesample3);
             println "... how many tokens in [${spacesample3}] ? "+obj.blanks(spacesample3);
 
         then:
-            result == 9
+            result == 14
     } // end of method
 
 
@@ -137,7 +137,7 @@ class LoaderTest extends Specification {
     def "Test 4 string full of tokens divided by blanks and no optional Id number to start"() {
         setup:
             Loader obj = new Loader();
-            String spacesample4 = " 2017-11-21 A 123.45 77 true Haircuts";
+            String spacesample4 = " 2017-11-21 A 123.45 77 true Haircuts|'Fred'";
             
         when:
             def result = obj.blanks(spacesample4);

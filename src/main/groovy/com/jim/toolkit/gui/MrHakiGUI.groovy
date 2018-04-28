@@ -9,6 +9,8 @@ import static javax.swing.JFrame.EXIT_ON_CLOSE
 import java.awt.*
 import javax.swing.JFrame;
 
+import groovy.util.logging.Slf4j;
+import org.slf4j.*
 /*
  * Copyright 2017 the original author or authors.
  *
@@ -102,7 +104,7 @@ class Address {
 	        panel(constraints: BorderLayout.SOUTH) 
     	    {
         	    button text: 'Save', actionPerformed: {
-            	    println address
+            	    //log.info address
             	}
             	button text: 'Exit', actionPerformed: {
                 	System.exit(0);

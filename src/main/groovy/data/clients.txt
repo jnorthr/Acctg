@@ -1,0 +1,13 @@
+// clients
+1|1|0|true|US Govt|Jim±s Pension|
+3|1|0|true|US Govt|Eve±s Pension|
+4|2|0|true|UK Govt|Jim±s Pension|
+5|2|0|true|UK Govt|Eve±s Pension|
+999|2|0|false|MBNA Bank|Visa Card Payment|
+998|2|0|false|Lloyds Bank|Mastercard Payment|
+1000|1|0|false|Credit Agricole|Acct Charges|
+1001|1|0|true|Credit Agricole|Interest Income|
+1002|2|0|false|Lloyds Bank|Acct Charges|
+1003|3|0|false|Walmart|Tea Bags|
+77|1|0|false|Govt of India|Visa Fees and Charges|
+1004|2|0|true|Fred Mertz|Pool Table Winnings|

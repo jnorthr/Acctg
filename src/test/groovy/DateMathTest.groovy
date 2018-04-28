@@ -18,18 +18,44 @@ class DateMathTest extends Specification {
     } // end of method
 
     
-    def "Compare Java Date convert value VS DateSupport value for same date"() {
+    def "Test the Check() method to confirm a date string can be converted into a Java Date()"() {
         setup:
-		    //Date dat = Date.parse('yyy-MM-dd','2017-01-01');
-	        DateMath obj = new DateMath();
-			//Date d = new Date();
+	        DateMath obj = new DateMath(true);
 			
 		when:
-			def ans = obj.check("2017-12-13");			
+			// returns boolean true if date in txt string can be converted to a Date() obj
+			def ans = obj.check("2017-12-13");	
+
 		then:
 			ans == true;
-			//dat[MONTH] == d[MONTH];
-			//dat[DATE] == d[DATE];
+	} // end of method
+	
+    
+    def "Confirm the setup() logic has today's date plus a valid future and history dates based on it for same date"() {
+        setup:
+	        DateMath obj = new DateMath(true);
+			Date ourTodayDate = new Date();			
+
+		when:
+			// returns boolean true if date in txt string can be converted to a Date() obj
+			Date ans = obj.setup();	
+					
+		then:
+			ourTodayDate.toString() == ans.toString()
+			obj.historyDate.toString() == (ourTodayDate - 7).toString()
+	} // end of method
+
+    
+    def "Convert text string with a date then add/subtract so many days to it, returning a Date() object +/- that many days"() {
+        setup:
+	        DateMath obj = new DateMath(true);
+			
+		when:
+			// returns boolean true if date in txt string can be converted to a Date() obj
+			Date ans = obj.getNextDate("2017-12-13", 5);	
+					
+		then:
+			ans[DATE] == 18;
 	} // end of method
 	
 } // end of class

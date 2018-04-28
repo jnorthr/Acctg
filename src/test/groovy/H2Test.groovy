@@ -8,9 +8,11 @@ class H2Test extends Specification {
     def "Simple H2 constructor returns proper names for database connection values"() {
         setup:
 		    H2 obj = null;
+            
         when:
             obj = new H2();
             def conn = obj.sql.toString()
+
         then:
         	obj.classname  == "H2"
         	obj.address.startsWith("jdbc:h2:file:") == true
