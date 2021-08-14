@@ -1,0 +1,49 @@
+# Java Project using JTable-style syntax but written in Groovy
+
+Travis Build Status for Master Branch: [![Build Status](https://travis-ci.org/jnorthr/TemplateProject.svg?branch=master)](https://travis-ci.org/jnorthr/TemplateProject)
+
+A Gradle project for users who develop with Gradle and Groovy/Java. Clone includes gradle build tool wrapper and folder structure like maven/gradle so you don't need an installed gradle build tool.
+ 
+Pre-requisites
+
+1. Working internet connection
+2. Installed Git client to copy/clone this repo
+3. Ability to use terminal console
+4. If no **projectname** value then pick ../$projectDir root folder name as it
+5. Merge tasks from copyDocs into copyCore
+6. Improve README
+7. Write bash script to build project
+
+Steps  
+1. Open terminal console
+
+1. Change directory \( cd \) into target folder location
+
+2. Run this command to create a folder named GParsGroovyTests and copy down all the pieces :
+
+   [git clone https://github.com/jnorthr/TemplateProject.git](git clone https://github.com/jnorthr/TemplateProject.git)
+
+3. **cd TemplateProject /**
+
+4. **./gradlew** runs a series of defined tasks to build and test code samples
+
+5. After prior step completes, examine ** TemplateProject /** folder to find the **/build/** folder with test results
+
+Note: **.travis.yml** needed extra logic to be able to push to github repo and have Travis C/I testing work as expected.
+
+//----------------------------
+cd ~/Dropbox/Projects/
+mkdir FredTest
+cd FredTest/
+git clone https://github.com/jnorthr/TemplateProject.git
+cd TemplateProject/
+gradlew
+gradlew -b copyCore.gradle 
+gradlew -b copyDocs.gradle 
+gradlew -b copyAllSource.gradle 
+cd ..
+gradle --info
+gradle wrapper
+gradlew -v
+
+
