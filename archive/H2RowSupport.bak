@@ -1,0 +1,91 @@
+
+
+/*
+        println "\n------------------------\n... do Map"
+        Map ma = [id:17, date:"2017-10-17", type:'C',amount:17.78,number:17,reason:"fuel 17"]  //,flag:true]
+        obj.add(ma);
+
+    	println "\n------------------------\n... get Cells"
+        Cells c2 = new Cells();
+        c2.cells.each{Cell c -> 
+            println "... c="+c.toString()+"; ";
+
+            Map xx = c.toMap();
+            xx.each{k,v-> println "k=[${k}] and v=[${v}]"}
+            obj.add( xx );
+        } // end of each
+
+        Date dat = Date.parse('yyy-MM-dd','2017-01-01');
+        Cell sell = new Cell([id:2, date:dat, type:'C', number:4, amount:3.33, flag:true, reason:'Gas-oil'])
+        println "... sell.toMap()=[${sell.toMap()}]";
+        obj.add(sell.toMap());
+
+        dat += 7;
+        sell = new Cell([date:dat, type:'B', number:3, amount:1.49, flag:true, reason:'Xferwise'])
+        println "... just do a Cell add of "+sell.toString();
+        obj.add(sell);
+
+		println "...\n"
+        obj.remove(1);
+
+
+        // Method to remove a row from default in-use H2 database table named 'core'. 
+		//obj.remove(1234);
+
+        // add(Date rowdate, Character ty, BigDecimal amt, Integer num, String txt, Boolean flg)
+        Character ch = 'A';
+        Date d2 = Date.parse('yyy-MM-dd','2017-12-25');
+        obj.add(d2, ch, -987.654,55,"Reason String",true);
+
+        // establish a Date object
+		println ""
+		def date = new Date()
+		def sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss")
+		println "... sdf="+sdf.format(date)
+		println ""
+
+        // add a row with funny non-UTF-8 chars
+		obj.add(" There is something ±§!@£%^&*()_+-= funny here.   ",date, -123.45);
+
+        // bump prior date by 7 days then add that row again too
+        Date d3 = Date.parse('yyy-MM-dd','2017-12-25');
+        d3+=7;
+		Character ch = 'A';
+        obj.add(d3, ch, 750.00,"magic is here");
+*/
+
+/* was in getID() ---
+ 			 while (resultSet.next()) {
+    			def first = resultSet.getString('date')
+    			def last = resultSet.getString('id')
+
+        		//Cell c = new Cell([id:resultSet.getString('id'), date:resultSet.getString('date'), type:'C', number:4, amount:3.33, flag:true, reason:'Gas-oil'])
+
+    			//payload.add(c)
+    			println "... resultSet.next():"+resultSet;
+
+				def md = resultSet.getMetaData()
+				columnNames = (1..md.columnCount).collect{ md.getColumnName(it) }
+				columnNames.each{e-> println "... column name:"+e; }
+    		 } // end of next
+		} // end of query
+
+
+		 { row ->
+			println "... row:<${row.toString()}>";
+
+  			payload = row as Map; // .toString();
+  			//payload.each{k,v-> println "... each:[${k}]=[${v}]" }
+  			assert payload instanceof Map
+  			println "... each:[payload[ID]]=[${row[ID]}]"
+
+			def md = row.getMetaData()
+			columnNames = (1..md.columnCount).collect{ md.getColumnName(it) }
+			columnNames.each{e-> println "... column name:"+e; }
+			
+			columnTypes = (1..md.columnCount).collect{ md.getColumnTypeName(it) }
+			columnTypes.each{e-> println "... column type:"+e; }
+			//def md = row.getMetaData();
+			//md.each{ println "... column name:"+ md.getColumnName(it) } 
+		} // end of each
+*/

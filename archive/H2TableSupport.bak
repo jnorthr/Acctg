@@ -1,0 +1,55 @@
+
+   /** 
+    * Method to construct a new  table.
+    * 
+    * @param the table to be built 
+    * @return void
+    */     
+    public void setup(String table, String declareString)
+    {
+        dbtable = table;
+
+        // throw away prior version
+        say drop();
+
+        // make a new version
+        say create(table, declareString);        
+        
+        // put a dummy row into this table
+        //stmt = """INSERT INTO ${table} VALUES(:id, :value, :dt)""".toString()
+        //sql.execute(stmt, [value: 'the LAZY turd jumped over the brown dog.',dt:new Date()])
+/*
+        stmt = """select * from ${table} ORDER BY date """.toString()
+        println stmt
+        sql.eachRow(stmt) 
+            { row ->
+                println "id=${row.id} reason=${row.reason}  dt=${row.dt} "
+            } // end of each
+*/
+    } // end of method
+
+
+
+/*
+
+	    // build default table 'core' if it does not exist
+    	//obj.create();
+
+        // Method to see rows of default in-use H2 database table named 'core'.
+		//obj.select();
+		//println ""
+
+        // Method to remove a non-default in-use H2 database table named 'Fred'. 
+        //String msg = obj.drop("Fred");
+        //println msg;
+        //String msg = obj.create("Fred");
+
+        //obj.create("Max", " id int auto_increment, dt date, type char ");
+        obj.select();
+
+        // check Closure logic on select of last known dbtable
+        def dothis = { what ->
+            println "... dothis:"+what.id.toString()+' '+what.date;
+        }
+        obj.select(dothis);
+*/            

@@ -1,0 +1,49 @@
+/* these tests moved into CellTest.groovy
+        println "\n... try Map constructor"
+        dat += 4;
+        Map m = [id:27, date:dat, type:'C', amount:-75.05, number:13, flag:true, reason:'Bingo'];
+        obj = new Cell(m);
+        println "Cell(map).toString() = [${obj.toString()}]"
+*/
+         
+/* these tests moved into CellTest.groovy
+        println "\n... try Binding"
+        dat+=24;
+        Binding binding = new Binding();
+        binding.setVariable("date", dat);
+        binding.setVariable("type", "C");
+        binding.setVariable("amount", -1.23);
+        binding.setVariable("number", 64);
+        binding.setVariable("flag", true);
+        binding.setVariable("reason", "reason for deed");
+
+        println "... try using groovy Binding object with values"
+        Cell obj2 = new Cell();
+        obj2.setBinding(binding)
+        println "Cell2.setBinding(binding) = [${obj2.toString()}]\n"
+*/
+        
+
+
+/* --- this will not work as annotation gens the constructors coz u need 2  build ur own using Binding
+// invisible constructor allows passing a sequence of values with same var.type as each var. declared in this class
+
+        // but seems like char and boolean must be explicit not just 'C' & false
+        Cell obj3 = new Cell(17,dat,ch,12.34,77499,yn, "Hi kids");
+        println "Cell3 = ${obj3.toString()}"
+
+        Cell obj4 = new Cell(7,dat,ch,12.34); // try constructor without some trailing var.s
+        println "Cell4 = ${obj4.toString()}"
+
+        println "\nTry to build a Cell from a Binding - what kind? Bean or groovy.lang ?"
+        try
+        {
+            Cell obj5 = new Cell(binding); // try constructor with Binding parm
+            println "Cell5 = ${obj5.toString()}"
+        } 
+        catch(Exception x) 
+        { 
+            println "... Exception@228="+x.message; 
+        }
+*/
+

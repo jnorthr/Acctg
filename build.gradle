@@ -7,9 +7,27 @@
 apply plugin: 'groovy'
 apply plugin: 'application'
 
+<<<<<<< HEAD
 defaultTasks 'clean', 'build', 'distTar', 'distZip', 'groovydoc', 'javadoc', 'run','runEmployee'
 
 mainClassName = "com.jim.toolkit.Employee"
+=======
+<<<<<<< HEAD
+//defaultTasks'runTestNumberFmts','runDatePicker','runGUI','runPane','runTrans' // 'runT2', fails!!!
+defaultTasks 'clean', 'build', 'distTar', 'distZip', 'groovydoc', 'javadoc', 'run','runAcctg','runCell','runCells', 'runDateSupport','runH2','runH2Row','runH2TableSupport','runGUI'  // 'runT2', fails
+=======
+defaultTasks 'clean', 'build', 'distTar', 'distZip', 'groovydoc', 'javadoc', 'run','runEmployee'
+
+mainClassName = "com.jim.toolkit.Employee"
+
+//defaultTasks 'runRadioButtons', 'runTestNumberFmts','runDatePicker','runGUI','runPane','runTrans' // 'runT2', fails!!!
+defaultTasks 'clean', 'build', 'distTar', 'distZip', 'groovydoc', 'javadoc', 'run','runAcctg','runCell','runCells', 'runDateSupport','runH2','runH2Row','runH2TableSupport','runParser', 'runRadioButtons', 'runTestNumberFmts','runDatePicker','runGUI','runPane','runTrans'  // 'runT2', fails
+>>>>>>> 8c0eaff8103acf0520bc32b89ace50379a841dd3
+
+// runs the main() method;
+// to convert dd/mm/yyyy strings into a Date() object & ISO ccyy-mm-dd
+mainClassName = "com.jim.toolkit.gui.TransactionGUI"
+>>>>>>> 5b528e82a3e13db2d5fe1265602a607afd8e0c69
 
 // In this section you declare where to find the dependencies of your project
 repositories {
@@ -20,6 +38,7 @@ repositories {
 
 dependencies {
     // Use the latest Groovy version for building this library
+<<<<<<< HEAD
     implementation 'org.codehaus.groovy:groovy-all:3.0.8'
     implementation 'org.apache.ivy:ivy:2.4.0'
     //implementation 'org.apache.ivy', name: 'ivy', version: '2.4.0'
@@ -71,3 +90,305 @@ task(runTable, dependsOn: 'classes', type: JavaExec) {
 } // end of task
 
 
+=======
+    compile 'org.codehaus.groovy:groovy-all:2.4.13'
+	compile 'org.slf4j:slf4j-api:1.6.1'
+	compile group: 'ch.qos.logback', name: 'logback-classic', version: '0.9.28'
+
+    // Use the awesome Spock testing and specification framework
+    testCompile 'org.spockframework:spock-core:1.1-groovy-2.4'
+    testCompile 'junit:junit:4.12'
+    runtime 'com.h2database:h2:1.4.191'
+}
+
+test {
+    testLogging {
+        exceptionFormat "full"
+    
+        // Make sure output from
+        // standard out or error is shown
+        // in Gradle output.
+        showStandardStreams = true
+ 
+        // Or we use events method:
+        // events 'standard_out', 'standard_error'
+ 
+        // Or set property events:
+        // events = ['standard_out', 'standard_error']
+ 
+        // Instead of string values we can
+        // use enum values:
+        // events org.gradle.api.tasks.testing.logging.TestLogEvent.STANDARD_OUT,
+        //        org.gradle.api.tasks.testing.logging.TestLogEvent.STANDARD_ERROR,
+    }
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion '4.7'
+}
+
+// runs the main() method; args are ignored but maybe later ?
+task(runExample, dependsOn: 'classes', type: JavaExec) {
+		main = 'com.jim.toolkit.EditableTableExample'
+		classpath = sourceSets.main.runtimeClasspath
+} // end of task
+
+
+// runs the Employee main() method; args are ignored but maybe later ?
+task(runEmployee, dependsOn: 'classes', type: JavaExec) {
+		main = 'com.jim.toolkit.Employee'
+		classpath = sourceSets.main.runtimeClasspath
+} // end of task
+
+// runs the EmployeeTableModel main() method; args are ignored but maybe later ?
+task(runTable, dependsOn: 'classes', type: JavaExec) {
+		main = 'com.jim.toolkit.EmployeeTableModel'
+		classpath = sourceSets.main.runtimeClasspath
+} // end of task
+
+
+// runs the main() method; args are ignored but maybe later ?
+task(runAcctg, dependsOn: 'classes', type: JavaExec) {
+		main = 'com.jim.toolkit.Acctg'
+		classpath = sourceSets.main.runtimeClasspath
+		//args 'jimbo', 'hi kids'
+		//systemProperty 'simple.message', 'Hi kids '
+} // end of task
+
+// runs the Cells main() method; args are ignored but maybe later ?
+task(runCell, dependsOn: 'classes', type: JavaExec) {
+		main = 'com.jim.toolkit.Cell'
+		classpath = sourceSets.main.runtimeClasspath
+		//args 'jimbo', 'hi kids'
+		//systemProperty 'simple.message', 'Hi kids '
+} // end of task
+
+
+// runs the Cells main() method; args are ignored but maybe later ?
+task(runCells, dependsOn: 'classes', type: JavaExec) {
+		main = 'com.jim.toolkit.Cells'
+		classpath = sourceSets.main.runtimeClasspath
+		//args 'jimbo', 'hi kids'
+		//systemProperty 'simple.message', 'Hi kids '
+} // end of task
+
+
+// 20170930... isIsoDate of [2017-09-30] yn=true
+// ... intDay=30 & intMo=9
+// ... can convert string 2017-09-30 into iso date - ok
+// ... converted iso string 2017-09-30 into 'Sat Sep 30 14:05:28 CEST 2017' ok; intYr=2017 intMo=9 intDay=30
+// getIsoDate()=Sat Sep 30 14:05:28 CEST 2017
+task(runDateSupport, dependsOn: 'classes', type: JavaExec) {
+		main = 'com.jim.toolkit.tools.DateSupport'
+		classpath = sourceSets.main.runtimeClasspath
+} // end of task
+
+task(runDecodeDate, dependsOn: 'classes', type: JavaExec) {
+		main = 'com.jim.toolkit.tools.DecodeDate'
+		classpath = sourceSets.main.runtimeClasspath
+} // end of task
+
+task(runDateArithmetic, dependsOn: 'classes', type: JavaExec) {
+		main = 'com.jim.toolkit.tools.DateArithmetic'
+		classpath = sourceSets.main.runtimeClasspath
+} // end of task
+
+task(runDateMath, dependsOn: 'classes', type: JavaExec) {
+		main = 'com.jim.toolkit.tools.DateMath'
+		classpath = sourceSets.main.runtimeClasspath
+} // end of task
+
+
+// runs the main() method; args are ignored but maybe later ?
+// Mr Haki's well run Address bind GUI that works, if you add more logic
+task(runGUI, dependsOn: 'classes', type: JavaExec) {
+		main = 'com.jim.toolkit.gui.MrHakiGUI'
+		classpath = sourceSets.main.runtimeClasspath
+} // end of task
+
+
+// runs the main() method; args are ignored but maybe later ?
+//  needs jdk 1.7+ to setup the connection to the java H2 database
+task(runH2, dependsOn: 'classes', type: JavaExec) {
+    main = 'com.jim.toolkit.database.H2'
+		classpath = sourceSets.main.runtimeClasspath
+} // end of task
+
+// runs the main() method; needs jdk 1.7+
+// row level methods to rows rther than tables
+task(runH2Row, dependsOn: 'classes', type: JavaExec) {
+		main = 'com.jim.toolkit.database.H2RowSupport'
+		classpath = sourceSets.main.runtimeClasspath
+} // end of task
+
+// runs the main() method; needs jdk 1.7+
+// works on Tables rather than individual rows
+task(runH2TableSupport, dependsOn: 'classes', type: JavaExec) {
+		main = 'com.jim.toolkit.database.H2TableSupport'
+		classpath = sourceSets.main.runtimeClasspath
+		//args 'table', 'core'
+		//systemProperty 'h2.table', 'core'
+} // end of task
+
+
+// runs the main() method; needs jdk 1.7+
+// some additional methods to query H2 tables for max() and count() and ?/
+task(runH2TableMethods, dependsOn: 'classes', type: JavaExec) {
+		main = 'com.jim.toolkit.database.H2TableMethods'
+		classpath = sourceSets.main.runtimeClasspath
+} // end of task
+
+
+// runs the main() method; needs jdk 1.7+
+// erase one individual table suggested by args[]
+task(runH2TableDrop, dependsOn: 'classes', type: JavaExec) {
+		main = 'com.jim.toolkit.database.H2TableSupport'
+		classpath = sourceSets.main.runtimeClasspath
+		args 'drop', 'core'
+		//systemProperty 'h2.table', 'core'
+} // end of task
+
+// runs the main() method; needs jdk 1.7+
+// create a table suggested by args[]
+task(runH2TableMake, dependsOn: 'classes', type: JavaExec) {
+		main = 'com.jim.toolkit.database.H2TableSupport'
+		classpath = sourceSets.main.runtimeClasspath
+		args 'make', 'core'
+} // end of task
+
+// runs the main() method; needs jdk 1.7+
+// show rows in a table suggested by args[]
+task(runH2TableShow, dependsOn: 'classes', type: JavaExec) {
+		main = 'com.jim.toolkit.database.H2TableSupport'
+		classpath = sourceSets.main.runtimeClasspath
+		args 'show', 'core'
+} // end of task
+
+// runs the main() method; needs jdk 1.7+
+// some code to insert a bunch of rows from a text file
+task(runLoader, dependsOn: 'classes', type: JavaExec) {
+		main = 'com.jim.toolkit.database.Loader'
+		classpath = sourceSets.main.runtimeClasspath
+} // end of task
+
+
+// runs the main() method; needs jdk 1.7+
+// some code to provide support methods
+task(runLoaderSupport, dependsOn: 'classes', type: JavaExec) {
+		main = 'com.jim.toolkit.database.LoaderSupport'
+		classpath = sourceSets.main.runtimeClasspath
+} // end of task
+
+
+// runs the main() method; args are ignored but maybe later ?
+// runs ok - gives a GUI to update the 'clients' table
+task(runT2, dependsOn: 'classes', type: JavaExec) {
+		main = 'com.jim.toolkit.gui.T2'
+		classpath = sourceSets.main.runtimeClasspath
+} // end of task
+
+
+// runs the main() method; args are ignored but maybe later ?
+// GUI for Cell entry - works ok if you SAVE when H2 is called using JDK 1.7+
+task(runTrans, dependsOn: 'classes', type: JavaExec) {
+		main = 'com.jim.toolkit.gui.TransactionGUI'
+		classpath = sourceSets.main.runtimeClasspath
+} // end of task
+
+
+// runs the main() method; args are ignored but maybe later ?
+// runs ok - gives text name of a numeric coded client
+task(runClientLoader, dependsOn: 'classes', type: JavaExec) {
+		main = 'com.jim.toolkit.tools.ClientLoader'
+		classpath = sourceSets.main.runtimeClasspath
+} // end of task
+
+
+// runs the main() method; args are ignored but maybe later ?
+// runs ok - gives text name of a numeric coded client
+task(runClientSupport, dependsOn: 'classes', type: JavaExec) {
+		main = 'com.jim.toolkit.tools.ClientSupport'
+		classpath = sourceSets.main.runtimeClasspath
+} // end of task
+
+// runs the main() method; args are ignored but maybe later ?
+// runs ok - gives gui to work with clients
+task(runClientDisplay, dependsOn: 'classes', type: JavaExec) {
+		main = 'com.jim.toolkit.gui.ClientDisplay'
+		classpath = sourceSets.main.runtimeClasspath
+} // end of task
+
+
+// runs the main() method; args are ignored but maybe later ?
+// runs ok - gives gui to work with clients
+task(runCoreDisplay, dependsOn: 'classes', type: JavaExec) {
+		main = 'com.jim.toolkit.gui.CoreDisplay'
+		classpath = sourceSets.main.runtimeClasspath
+} // end of task
+
+
+/* runs the main() method; args are ignored but maybe later ?
+// runs ok - gives dropdown choice of 3 names pick one and OK   ?????????????
+task(runTestNumberFmts, dependsOn: 'classes', type: JavaExec) {
+		main = 'com.jim.toolkit.gui.TestNumberFmts'
+		classpath = sourceSets.main.runtimeClasspath
+} // end of task
+
+// runs the main() method; args are ignored but maybe later ?
+// runs sample JSON text string parser for pairs of {} char.s
+task(runParser, dependsOn: 'classes', type: JavaExec) {
+		main = 'com.jim.toolkit.Parser'
+		classpath = sourceSets.main.runtimeClasspath
+} // end of task
+*/
+
+
+/* runs the main() method; args are ignored but maybe later ?
+// Opens small GUI with 2 fields: 1)date & 2)popup button
+task(runDatePicker, dependsOn: 'classes', type: JavaExec) {
+		main = 'com.jim.toolkit.gui.DatePickerExample'
+		classpath = sourceSets.main.runtimeClasspath
+} // end of task
+*/
+/*
+> Task :runH2
+select * from test
+id=1 value=clob0: 'the LAZY turd jumped over the brown dog.'  dt=2017-10-08  ran=1
+id=2 value=clob1: 'the LAZY turd jumped over the brown dog.'  dt=2017-10-12  ran=1
+id=3 value=clob2: 'the LAZY turd jumped over the brown dog.'  dt=2017-10-17  ran=1
+--- the end ---
+*/
+
+
+/* runs the main() method; args are ignored but maybe later ?
+// runs ok - gives dropdown choice of 3 names pick one and OK
+task(runPane, dependsOn: 'classes', type: JavaExec) {
+		main = 'com.jim.toolkit.gui.Pane'
+		classpath = sourceSets.main.runtimeClasspath
+} // end of task
+*/
+
+/* runs the main() method; args are ignored but maybe later ?
+// GUI for scrollable panes that show Cells entris; 
+// works ok until you SAVE when H2 is called but fails as not JDK 1.7+ so backed off to h2:1.4.191
+task(runScroll, dependsOn: 'classes', type: JavaExec) {
+		main = 'com.jim.toolkit.gui.ScrollPaneExample'
+		classpath = sourceSets.main.runtimeClasspath
+} // end of task
+<<<<<<< HEAD
+*/
+=======
+
+// runs the main() method; args are ignored but maybe later ?
+// runs ok - gives text name of a numeric coded client
+task(runClient, dependsOn: 'classes', type: JavaExec) {
+		main = 'com.jim.toolkit.tools.ClientSupport'
+		classpath = sourceSets.main.runtimeClasspath
+} // end of task
+
+
+task wrapper(type: Wrapper) {
+    gradleVersion '4.7'
+}
+>>>>>>> 8c0eaff8103acf0520bc32b89ace50379a841dd3
+>>>>>>> 5b528e82a3e13db2d5fe1265602a607afd8e0c69
