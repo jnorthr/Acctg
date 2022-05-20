@@ -7,41 +7,29 @@
 apply plugin: 'groovy'
 apply plugin: 'application'
 
-<<<<<<< HEAD
-defaultTasks 'clean', 'build', 'distTar', 'distZip', 'groovydoc', 'javadoc', 'run','runEmployee'
+defaultTasks 'clean', 'build', 'distTar', 'distZip', 'groovydoc', 'javadoc', 'test', 'run', 
+'runEmployee', 'runTestNumberFmts', 'runDatePicker', 'runGUI', 'runPane', 'runTrans', 'runAcctg', 'runCell', 'runCells', 
+'runDateSupport', 'runH2', 'runH2Row', 'runH2TableSupport', 'runParser', 'runClient', 'runScroll', 'runCoreDisplay', 
+'runClientLoader', 'runClientDisplay', 'runClientSupport', 'runT2', 'runLoaderSupport', 'runLoader', 'runTable', 
+'runExample', 'runDateMath', 'runDateArithmetic', 'runDecodeDate', 'runH2TableShow', 'runH2TableMake', 'runH2TableDrop',
+'runH2TableMethods'
 
-mainClassName = "com.jim.toolkit.Employee"
-=======
-<<<<<<< HEAD
-//defaultTasks'runTestNumberFmts','runDatePicker','runGUI','runPane','runTrans' // 'runT2', fails!!!
-defaultTasks 'clean', 'build', 'distTar', 'distZip', 'groovydoc', 'javadoc', 'run','runAcctg','runCell','runCells', 'runDateSupport','runH2','runH2Row','runH2TableSupport','runGUI'  // 'runT2', fails
-=======
-defaultTasks 'clean', 'build', 'distTar', 'distZip', 'groovydoc', 'javadoc', 'run','runEmployee'
-
-mainClassName = "com.jim.toolkit.Employee"
-
-//defaultTasks 'runRadioButtons', 'runTestNumberFmts','runDatePicker','runGUI','runPane','runTrans' // 'runT2', fails!!!
-defaultTasks 'clean', 'build', 'distTar', 'distZip', 'groovydoc', 'javadoc', 'run','runAcctg','runCell','runCells', 'runDateSupport','runH2','runH2Row','runH2TableSupport','runParser', 'runRadioButtons', 'runTestNumberFmts','runDatePicker','runGUI','runPane','runTrans'  // 'runT2', fails
->>>>>>> 8c0eaff8103acf0520bc32b89ace50379a841dd3
 
 // runs the main() method;
-// to convert dd/mm/yyyy strings into a Date() object & ISO ccyy-mm-dd
-mainClassName = "com.jim.toolkit.gui.TransactionGUI"
->>>>>>> 5b528e82a3e13db2d5fe1265602a607afd8e0c69
+mainClassName = "com.jim.toolkit.gui.Transaction"
 
 // In this section you declare where to find the dependencies of your project
 repositories {
-    // Use jcenter for resolving your dependencies.
-    // You can declare any Maven/Ivy/file repository here.
     mavenCentral()
 }
 
 dependencies {
     // Use the latest Groovy version for building this library
-<<<<<<< HEAD
     implementation 'org.codehaus.groovy:groovy-all:3.0.8'
     implementation 'org.apache.ivy:ivy:2.4.0'
-    //implementation 'org.apache.ivy', name: 'ivy', version: '2.4.0'
+    implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.+'
+	implementation group: 'ch.qos.logback', name: 'logback-classic', version: '0.9.28'
+    implementation 'com.h2database:h2:1.4.191'
 
     // Use the awesome Spock testing and specification framework
     testImplementation 'org.spockframework:spock-core:2.0-groovy-3.0'
@@ -56,23 +44,22 @@ test {
         // standard out or error is shown
         // in Gradle output.
         showStandardStreams = true
- 
-        // Or we use events method:
-        // events 'standard_out', 'standard_error'
- 
-        // Or set property events:
-        // events = ['standard_out', 'standard_error']
- 
-        // Instead of string values we can
-        // use enum values:
-        // events org.gradle.api.tasks.testing.logging.TestLogEvent.STANDARD_OUT,
-        //        org.gradle.api.tasks.testing.logging.TestLogEvent.STANDARD_ERROR,
     }
 }
+
+// ===================================================
 
 // runs the main() method; args are ignored but maybe later ?
 task(runExample, dependsOn: 'classes', type: JavaExec) {
 		main = 'com.jim.toolkit.EditableTableExample'
+		classpath = sourceSets.main.runtimeClasspath
+} // end of task
+
+
+
+// runs the EmployeeTableModel main() method; args are ignored but maybe later ?
+task(runTable, dependsOn: 'classes', type: JavaExec) {
+		main = 'com.jim.toolkit.EmployeeTableModel'
 		classpath = sourceSets.main.runtimeClasspath
 } // end of task
 
@@ -83,68 +70,6 @@ task(runEmployee, dependsOn: 'classes', type: JavaExec) {
 		classpath = sourceSets.main.runtimeClasspath
 } // end of task
 
-// runs the EmployeeTableModel main() method; args are ignored but maybe later ?
-task(runTable, dependsOn: 'classes', type: JavaExec) {
-		main = 'com.jim.toolkit.EmployeeTableModel'
-		classpath = sourceSets.main.runtimeClasspath
-} // end of task
-
-
-=======
-    compile 'org.codehaus.groovy:groovy-all:2.4.13'
-	compile 'org.slf4j:slf4j-api:1.6.1'
-	compile group: 'ch.qos.logback', name: 'logback-classic', version: '0.9.28'
-
-    // Use the awesome Spock testing and specification framework
-    testCompile 'org.spockframework:spock-core:1.1-groovy-2.4'
-    testCompile 'junit:junit:4.12'
-    runtime 'com.h2database:h2:1.4.191'
-}
-
-test {
-    testLogging {
-        exceptionFormat "full"
-    
-        // Make sure output from
-        // standard out or error is shown
-        // in Gradle output.
-        showStandardStreams = true
- 
-        // Or we use events method:
-        // events 'standard_out', 'standard_error'
- 
-        // Or set property events:
-        // events = ['standard_out', 'standard_error']
- 
-        // Instead of string values we can
-        // use enum values:
-        // events org.gradle.api.tasks.testing.logging.TestLogEvent.STANDARD_OUT,
-        //        org.gradle.api.tasks.testing.logging.TestLogEvent.STANDARD_ERROR,
-    }
-}
-
-task wrapper(type: Wrapper) {
-    gradleVersion '4.7'
-}
-
-// runs the main() method; args are ignored but maybe later ?
-task(runExample, dependsOn: 'classes', type: JavaExec) {
-		main = 'com.jim.toolkit.EditableTableExample'
-		classpath = sourceSets.main.runtimeClasspath
-} // end of task
-
-
-// runs the Employee main() method; args are ignored but maybe later ?
-task(runEmployee, dependsOn: 'classes', type: JavaExec) {
-		main = 'com.jim.toolkit.Employee'
-		classpath = sourceSets.main.runtimeClasspath
-} // end of task
-
-// runs the EmployeeTableModel main() method; args are ignored but maybe later ?
-task(runTable, dependsOn: 'classes', type: JavaExec) {
-		main = 'com.jim.toolkit.EmployeeTableModel'
-		classpath = sourceSets.main.runtimeClasspath
-} // end of task
 
 
 // runs the main() method; args are ignored but maybe later ?
@@ -193,13 +118,14 @@ task(runDateArithmetic, dependsOn: 'classes', type: JavaExec) {
 		classpath = sourceSets.main.runtimeClasspath
 } // end of task
 
+
 task(runDateMath, dependsOn: 'classes', type: JavaExec) {
 		main = 'com.jim.toolkit.tools.DateMath'
 		classpath = sourceSets.main.runtimeClasspath
 } // end of task
 
 
-// runs the main() method; args are ignored but maybe later ?
+
 // Mr Haki's well run Address bind GUI that works, if you add more logic
 task(runGUI, dependsOn: 'classes', type: JavaExec) {
 		main = 'com.jim.toolkit.gui.MrHakiGUI'
@@ -207,21 +133,22 @@ task(runGUI, dependsOn: 'classes', type: JavaExec) {
 } // end of task
 
 
-// runs the main() method; args are ignored but maybe later ?
+
 //  needs jdk 1.7+ to setup the connection to the java H2 database
 task(runH2, dependsOn: 'classes', type: JavaExec) {
     main = 'com.jim.toolkit.database.H2'
 		classpath = sourceSets.main.runtimeClasspath
 } // end of task
 
-// runs the main() method; needs jdk 1.7+
+
+
 // row level methods to rows rther than tables
 task(runH2Row, dependsOn: 'classes', type: JavaExec) {
 		main = 'com.jim.toolkit.database.H2RowSupport'
 		classpath = sourceSets.main.runtimeClasspath
 } // end of task
 
-// runs the main() method; needs jdk 1.7+
+
 // works on Tables rather than individual rows
 task(runH2TableSupport, dependsOn: 'classes', type: JavaExec) {
 		main = 'com.jim.toolkit.database.H2TableSupport'
@@ -231,7 +158,6 @@ task(runH2TableSupport, dependsOn: 'classes', type: JavaExec) {
 } // end of task
 
 
-// runs the main() method; needs jdk 1.7+
 // some additional methods to query H2 tables for max() and count() and ?/
 task(runH2TableMethods, dependsOn: 'classes', type: JavaExec) {
 		main = 'com.jim.toolkit.database.H2TableMethods'
@@ -239,7 +165,7 @@ task(runH2TableMethods, dependsOn: 'classes', type: JavaExec) {
 } // end of task
 
 
-// runs the main() method; needs jdk 1.7+
+
 // erase one individual table suggested by args[]
 task(runH2TableDrop, dependsOn: 'classes', type: JavaExec) {
 		main = 'com.jim.toolkit.database.H2TableSupport'
@@ -248,7 +174,7 @@ task(runH2TableDrop, dependsOn: 'classes', type: JavaExec) {
 		//systemProperty 'h2.table', 'core'
 } // end of task
 
-// runs the main() method; needs jdk 1.7+
+
 // create a table suggested by args[]
 task(runH2TableMake, dependsOn: 'classes', type: JavaExec) {
 		main = 'com.jim.toolkit.database.H2TableSupport'
@@ -256,7 +182,7 @@ task(runH2TableMake, dependsOn: 'classes', type: JavaExec) {
 		args 'make', 'core'
 } // end of task
 
-// runs the main() method; needs jdk 1.7+
+
 // show rows in a table suggested by args[]
 task(runH2TableShow, dependsOn: 'classes', type: JavaExec) {
 		main = 'com.jim.toolkit.database.H2TableSupport'
@@ -264,7 +190,6 @@ task(runH2TableShow, dependsOn: 'classes', type: JavaExec) {
 		args 'show', 'core'
 } // end of task
 
-// runs the main() method; needs jdk 1.7+
 // some code to insert a bunch of rows from a text file
 task(runLoader, dependsOn: 'classes', type: JavaExec) {
 		main = 'com.jim.toolkit.database.Loader'
@@ -272,7 +197,6 @@ task(runLoader, dependsOn: 'classes', type: JavaExec) {
 } // end of task
 
 
-// runs the main() method; needs jdk 1.7+
 // some code to provide support methods
 task(runLoaderSupport, dependsOn: 'classes', type: JavaExec) {
 		main = 'com.jim.toolkit.database.LoaderSupport'
@@ -327,7 +251,7 @@ task(runCoreDisplay, dependsOn: 'classes', type: JavaExec) {
 } // end of task
 
 
-/* runs the main() method; args are ignored but maybe later ?
+// runs the main() method; args are ignored but maybe later ?
 // runs ok - gives dropdown choice of 3 names pick one and OK   ?????????????
 task(runTestNumberFmts, dependsOn: 'classes', type: JavaExec) {
 		main = 'com.jim.toolkit.gui.TestNumberFmts'
@@ -340,44 +264,32 @@ task(runParser, dependsOn: 'classes', type: JavaExec) {
 		main = 'com.jim.toolkit.Parser'
 		classpath = sourceSets.main.runtimeClasspath
 } // end of task
-*/
 
 
-/* runs the main() method; args are ignored but maybe later ?
+// runs the main() method; args are ignored but maybe later ?
 // Opens small GUI with 2 fields: 1)date & 2)popup button
 task(runDatePicker, dependsOn: 'classes', type: JavaExec) {
 		main = 'com.jim.toolkit.gui.DatePickerExample'
 		classpath = sourceSets.main.runtimeClasspath
 } // end of task
-*/
-/*
-> Task :runH2
-select * from test
-id=1 value=clob0: 'the LAZY turd jumped over the brown dog.'  dt=2017-10-08  ran=1
-id=2 value=clob1: 'the LAZY turd jumped over the brown dog.'  dt=2017-10-12  ran=1
-id=3 value=clob2: 'the LAZY turd jumped over the brown dog.'  dt=2017-10-17  ran=1
---- the end ---
-*/
 
 
-/* runs the main() method; args are ignored but maybe later ?
+// runs the main() method; args are ignored but maybe later ?
 // runs ok - gives dropdown choice of 3 names pick one and OK
 task(runPane, dependsOn: 'classes', type: JavaExec) {
 		main = 'com.jim.toolkit.gui.Pane'
 		classpath = sourceSets.main.runtimeClasspath
 } // end of task
-*/
 
-/* runs the main() method; args are ignored but maybe later ?
+
+// runs the main() method; args are ignored but maybe later ?
 // GUI for scrollable panes that show Cells entris; 
 // works ok until you SAVE when H2 is called but fails as not JDK 1.7+ so backed off to h2:1.4.191
 task(runScroll, dependsOn: 'classes', type: JavaExec) {
 		main = 'com.jim.toolkit.gui.ScrollPaneExample'
 		classpath = sourceSets.main.runtimeClasspath
 } // end of task
-<<<<<<< HEAD
-*/
-=======
+
 
 // runs the main() method; args are ignored but maybe later ?
 // runs ok - gives text name of a numeric coded client
@@ -386,9 +298,3 @@ task(runClient, dependsOn: 'classes', type: JavaExec) {
 		classpath = sourceSets.main.runtimeClasspath
 } // end of task
 
-
-task wrapper(type: Wrapper) {
-    gradleVersion '4.7'
-}
->>>>>>> 8c0eaff8103acf0520bc32b89ace50379a841dd3
->>>>>>> 5b528e82a3e13db2d5fe1265602a607afd8e0c69

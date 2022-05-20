@@ -11,10 +11,10 @@ import java.util.Random
 import com.jim.toolkit.database.H2TableSupport;
 import com.jim.toolkit.tools.ClientSupport;
 
-import groovy.util.logging.Slf4j;
-import org.slf4j.Logger
+//import groovy.util.logging.Slf4j;
+//import org.slf4j.Logger
 
- @Slf4j
+// @Slf4j
  public class ClientLoader
  {
     /** an O/S specific location for the user's home folder name */ 
